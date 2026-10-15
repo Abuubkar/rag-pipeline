@@ -1,0 +1,41 @@
+# Every knob of the pipeline lives here. Environment variables override it
+# with the RAG_ prefix and "__" for nesting, e.g. RAG_RETRIEVAL__TOP_K=10.
+
+dataset:
+  name: yixuantt/MultiHopRAG
+  revision: 71ac0d0bd1f951d2d6b70311f7d2ae404e1ffa82   # pinned HF commit
+
+database:
+  url: postgresql+psycopg://rag:rag@localhost:5433/rag
+
+ollama:
+  base_url: http://localhost:11434
+
+llm:
+  generator:
+    provider: ollama
+    model: gemma4:12b
+    temperature: 0.0
+    seed: 7
+    num_ctx: 8192
+
+embeddings:
+  provider: ollama
+  model: nomic-embed-text
+  batch_size: 32
+
+chunking:
+  library: llamaindex
+  splitter: sentence
+  chunk_size: 512        # tokens
+  chunk_overlap: 64      # tokens
+  contextual_header: true  # prepend title/source/date before embedding
+
+retrieval:
+  top_k: 6
+
+index:
+  alias: default         # which index version `ask` uses (see `main.py index list`)
+
+prompts:
+  answer: answer         # config/prompts/answer.yaml

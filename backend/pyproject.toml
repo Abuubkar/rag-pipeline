@@ -1,0 +1,76 @@
+[project]
+name = "rag"
+version = "0.1.0"
+description = "Production-style RAG pipeline for learning"
+authors = [
+    { name = "Abubakar Khawaja", email = "abubakark1998@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.20.0",
+    "datasets>=5.1.0",
+    "langchain-core>=1.6.11",
+    "langchain-ollama>=1.1.0",
+    "langfuse>=5.0.1",
+    "langgraph>=1.2.15",
+    "llama-index-core>=0.14.25",
+    "pgvector>=0.5.1",
+    "psycopg[binary]>=3.3.6",
+    "pydantic>=2.14.1",
+    "pydantic-settings>=2.16.0",
+    "python-dotenv>=1.2.4",
+    "pyyaml>=6.0.3",
+    "rich>=15.0.0",
+    "sqlalchemy>=2.1.4",
+    "typer>=0.27.3",
+]
+
+# ── Architecture rules (run: uv run lint-imports) ─────────────────────
+[tool.importlinter]
+root_package = "rag"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Vendor AI libraries are only imported inside rag.packages"
+type = "forbidden"
+source_modules = [
+    "rag.pipeline", "rag.container", "rag.ingestion", "rag.retrieval", "rag.generation",
+    "rag.observability", "rag.db", "rag.domain", "rag.core",
+]
+forbidden_modules = [
+    "langchain_core", "langchain_ollama", "langgraph", "llama_index", "langfuse",
+    "datasets", "ollama",
+]
+allow_indirect_imports = true  # going *through* rag.packages is the whole point
+
+[[tool.importlinter.contracts]]
+name = "Layers: story → capabilities → support → packages → db → domain"
+type = "layers"
+layers = [
+    "rag.pipeline",
+    "rag.container",
+    "rag.ingestion | rag.retrieval | rag.generation",
+    "rag.observability",
+    "rag.packages",
+    "rag.db",
+    "rag.domain",
+]
+
+[[tool.importlinter.contracts]]
+name = "Package folders don't import each other (the container wires them)"
+type = "independence"
+modules = [
+    "rag.packages.llm", "rag.packages.embeddings", "rag.packages.documents",
+    "rag.packages.chunking", "rag.packages.vectorstore", "rag.packages.orchestration",
+    "rag.packages.tracing",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.7,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "import-linter>=2.15",
+    "pytest>=9.1.1",
+]
