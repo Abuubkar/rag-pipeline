@@ -38,6 +38,7 @@ def traced(name: str, as_type: str = "span") -> Callable[[F], F]:
 
 
 def annotate(output: Any = None, metadata: Any = None) -> None:
+    """Attach data to the current span."""
     if enabled():
         langfuse.update_current(output=output, metadata=metadata)
 
