@@ -13,8 +13,8 @@ Status: ✅ done · 🔜 next · ⬜ planned
 |---|---|---|---|---|---|
 | 0 | Project setup | Working rules, empty project | — | — | ✅ |
 | 1 | Call a local LLM | What a chat model is, messages (system/human/AI), `invoke` | `ChatOllama` | `langchain-ollama` | ✅ |
-| 2 | Prompt templates | Reusable prompts with variables | `ChatPromptTemplate` | (comes with step 1) | 🔜 |
-| 3 | Chains (LCEL) | Joining steps with `\|`: prompt → model → parser | Runnables, `StrOutputParser` | — | ⬜ |
+| 2 | Prompt templates | Reusable prompts with variables | `ChatPromptTemplate` | (comes with step 1) | ✅ |
+| 3 | Chains (LCEL) | Joining steps with `\|`: prompt → model → parser | Runnables, `StrOutputParser` | — | 🔜 |
 | 4 | Streaming | Showing tokens as they're generated | `.stream()` | — | ⬜ |
 | 5 | Structured output | Getting typed data (JSON) back from an LLM | `with_structured_output` | — | ⬜ |
 
