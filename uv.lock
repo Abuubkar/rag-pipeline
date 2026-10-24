@@ -592,11 +592,17 @@ name = "rag-langchain"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "langchain-core" },
     { name = "langchain-ollama" },
+    { name = "pydantic" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "langchain-ollama", specifier = ">=1.1.0" }]
+requires-dist = [
+    { name = "langchain-core", specifier = ">=1" },
+    { name = "langchain-ollama", specifier = ">=1.1.0" },
+    { name = "pydantic", specifier = ">=2" },
+]
 
 [[package]]
 name = "requests"

@@ -16,13 +16,13 @@ Status: ✅ done · 🔜 next · ⬜ planned
 | 2 | Prompt templates | Reusable prompts with variables | `ChatPromptTemplate` | (comes with step 1) | ✅ |
 | 3 | Chains (LCEL) | Joining steps with `\|`: prompt → model → parser | Runnables, `StrOutputParser` | — | ✅ |
 | 4 | Streaming | Showing tokens as they're generated | `.stream()` | — | ✅ |
-| 5 | Structured output | Getting typed data (JSON) back from an LLM | `with_structured_output` | — | 🔜 |
+| 5 | Structured output | Getting typed data (JSON) back from an LLM | `with_structured_output` | `pydantic` (declared; already installed) | ✅ |
 
 ## Part B: Indexing (preparing documents so they can be searched)
 
 | # | Step | You learn | LangChain piece | Package | Status |
 |---|---|---|---|---|---|
-| 6 | Load documents | What a `Document` is (text + metadata); loading MultiHop-RAG | `HuggingFaceDatasetLoader` | `langchain-community`, `datasets` | ⬜ |
+| 6 | Load documents | What a `Document` is (text + metadata); loading MultiHop-RAG | `HuggingFaceDatasetLoader` | `langchain-community`, `datasets` | 🔜 |
 | 7 | Split into chunks | Why we chunk; chunk size and overlap | `RecursiveCharacterTextSplitter` | `langchain-text-splitters` | ⬜ |
 | 8 | Embeddings | Turning text into vectors; cosine similarity | `OllamaEmbeddings` | (step 1 package) | ⬜ |
 | 9 | In-memory vector store | Storing vectors and searching by similarity | `InMemoryVectorStore` | — | ⬜ |
@@ -79,7 +79,7 @@ Filled in as we hit them. These are the reasons to reach for LangGraph, LangSmit
 
 | Step | Limit | What would solve it |
 |---|---|---|
-| — | — | — |
+| 5 | `ChatOllama.with_structured_output` defaults to `method="json_schema"`, which constrains the format but never shows the model the field descriptions. You get valid but wrong values, silently. | Use `method="function_calling"`; always check values, not just types |
 
 ## Notes
 
