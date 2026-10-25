@@ -27,6 +27,8 @@ from huggingface_hub import hf_hub_download
 from langchain_core.document_loaders import BaseLoader
 from langchain_core.documents import Document
 
+REVISION = "71ac0d0bd1f951d2d6b70311f7d2ae404e1ffa82"  # pinned dataset commit
+
 
 class MultiHopRAGLoader(BaseLoader):
     """Loads the MultiHop-RAG news corpus: one Document per article."""
@@ -52,21 +54,23 @@ class MultiHopRAGLoader(BaseLoader):
             yield Document(page_content=article["body"], metadata=metadata)
 
 
-loader = MultiHopRAGLoader(revision="71ac0d0bd1f951d2d6b70311f7d2ae404e1ffa82")
-docs = loader.load()  # we didn't write load(): BaseLoader builds it from lazy_load()
+# Runs only with `uv run step06_load.py`, not when another step imports the loader.
+if __name__ == "__main__":
+    loader = MultiHopRAGLoader(revision=REVISION)
+    docs = loader.load()  # we didn't write load(): BaseLoader builds it from lazy_load()
 
-print(f"Loaded {len(docs)} documents")
+    print(f"Loaded {len(docs)} documents")
 
-first = docs[0]
-print("\nFirst document")
-print("  metadata:    ", first.metadata)
-print("  page_content:", first.page_content[:300].replace("\n", " "), "…")
+    first = docs[0]
+    print("\nFirst document")
+    print("  metadata:    ", first.metadata)
+    print("  page_content:", first.page_content[:300].replace("\n", " "), "…")
 
-lengths = [len(d.page_content.split()) for d in docs]
-print("\nArticle length in words")
-print(f"  shortest {min(lengths)} · average {sum(lengths) // len(lengths)} · longest {max(lengths)}")
+    lengths = [len(d.page_content.split()) for d in docs]
+    print("\nArticle length in words")
+    print(f"  shortest {min(lengths)} · average {sum(lengths) // len(lengths)} · longest {max(lengths)}")
 
-sources = sorted({d.metadata["source"] for d in docs})
-categories = sorted({d.metadata["category"] for d in docs})
-print(f"\n{len(sources)} sources, e.g. {sources[:5]}")
-print(f"Categories: {categories}")
+    sources = sorted({d.metadata["source"] for d in docs})
+    categories = sorted({d.metadata["category"] for d in docs})
+    print(f"\n{len(sources)} sources, e.g. {sources[:5]}")
+    print(f"Categories: {categories}")
