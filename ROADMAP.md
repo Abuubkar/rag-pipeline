@@ -22,8 +22,8 @@ Status: ✅ done · 🔜 next · ⬜ planned
 
 | # | Step | You learn | LangChain piece | Package | Status |
 |---|---|---|---|---|---|
-| 6 | Load documents | What a `Document` is (text + metadata); loading MultiHop-RAG | `HuggingFaceDatasetLoader` | `langchain-community`, `datasets` | 🔜 |
-| 7 | Split into chunks | Why we chunk; chunk size and overlap | `RecursiveCharacterTextSplitter` | `langchain-text-splitters` | ⬜ |
+| 6 | Load documents | What a `Document` is (text + metadata); how every loader works (`lazy_load`/`load`) | Our own `BaseLoader` (langchain-core) | `huggingface-hub` | ✅ |
+| 7 | Split into chunks | Why we chunk; chunk size and overlap | `RecursiveCharacterTextSplitter` | `langchain-text-splitters` | 🔜 |
 | 8 | Embeddings | Turning text into vectors; cosine similarity | `OllamaEmbeddings` | (step 1 package) | ⬜ |
 | 9 | In-memory vector store | Storing vectors and searching by similarity | `InMemoryVectorStore` | — | ⬜ |
 | 10 | Persistent vector store | Keeping vectors in a real database | `PGVector` + Postgres in Docker | `langchain-postgres`, `psycopg` | ⬜ |
@@ -35,7 +35,7 @@ Status: ✅ done · 🔜 next · ⬜ planned
 | 11 | Retrievers | The retriever interface; top-k | `as_retriever()` | — | ⬜ |
 | 12 | First RAG chain | Retrieve → put chunks in prompt → answer | LCEL chain | — | ⬜ |
 | 13 | Sources and citations | Returning which chunks were used | `RunnablePassthrough.assign` | — | ⬜ |
-| 14 | Keyword search | Why exact words still matter (BM25) | `BM25Retriever` | `rank-bm25` | ⬜ |
+| 14 | Keyword search | Why exact words still matter (BM25) | `BM25Retriever` (⚠️ lives in sunset `langchain-community`; recheck docs first) | `rank-bm25` | ⬜ |
 | 15 | Hybrid search | Combining keyword + vector results | `EnsembleRetriever` | `langchain-classic` | ⬜ |
 | 16 | Multi-query | Asking the question several ways | `MultiQueryRetriever` | — | ⬜ |
 | 17 | Reranking | Letting the LLM reorder results | `ContextualCompressionRetriever` + `LLMListwiseRerank` | — | ⬜ |
@@ -80,6 +80,8 @@ Filled in as we hit them. These are the reasons to reach for LangGraph, LangSmit
 | Step | Limit | What would solve it |
 |---|---|---|
 | 5 | `ChatOllama.with_structured_output` defaults to `method="json_schema"`, which constrains the format but never shows the model the field descriptions. You get valid but wrong values, silently. | Use `method="function_calling"`; always check values, not just types |
+| 6 | `langchain-community` (home of most classic loaders and retrievers) was sunset on 2026-05-22 and its repo archived. It still installs, but gets no fixes. | Standalone `langchain-<provider>` packages, or your own `BaseLoader` |
+| 6 | The old `HuggingFaceDatasetLoader` (a) can't pin a dataset `revision`, (b) needs `datasets` but doesn't declare it (fails only at `.load()`), and (c) runs every text through `json.dumps`, silently turning articles into escaped JSON strings (quotes, literal `\n`, `\u2019`). | A small custom `BaseLoader` with `hf_hub_download(revision=…)` |
 
 ## Notes
 
