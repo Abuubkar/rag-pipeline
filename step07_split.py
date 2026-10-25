@@ -16,32 +16,34 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from step06_load import REVISION, MultiHopRAGLoader
 
-articles = MultiHopRAGLoader(revision=REVISION).load()
-
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=1000,      # max characters per chunk (~150–200 words)
     chunk_overlap=200,    # characters shared between neighbouring chunks
     add_start_index=True, # records where each chunk starts in its article
 )
-chunks = splitter.split_documents(articles)
 
-sizes = [len(chunk.page_content) for chunk in chunks]
-print(f"{len(articles)} articles → {len(chunks)} chunks")
-print(f"Chunk size in characters: min {min(sizes)} · avg {sum(sizes) // len(sizes)} · max {max(sizes)}")
+# Runs only with `uv run step07_split.py`, not when another step imports the splitter.
+if __name__ == "__main__":
+    articles = MultiHopRAGLoader(revision=REVISION).load()
+    chunks = splitter.split_documents(articles)
 
-print("\nMetadata is copied to every chunk, plus start_index:")
-print(" ", chunks[1].metadata)
+    sizes = [len(chunk.page_content) for chunk in chunks]
+    print(f"{len(articles)} articles → {len(chunks)} chunks")
+    print(f"Chunk size in characters: min {min(sizes)} · avg {sum(sizes) // len(sizes)} · max {max(sizes)}")
 
-neighbours = [(a, b) for a, b in zip(chunks, chunks[1:]) if a.metadata["url"] == b.metadata["url"]]
-overlapping = [(a, b) for a, b in neighbours
-               if b.metadata["start_index"] < a.metadata["start_index"] + len(a.page_content)]
-print(f"\nNeighbouring chunks that really overlap: {len(overlapping)} of {len(neighbours)}")
+    print("\nMetadata is copied to every chunk, plus start_index:")
+    print(" ", chunks[1].metadata)
 
-first, second = overlapping[0]
-print("Example: the end of one chunk …")
-print("  …", first.page_content[-120:].replace("\n", " "))
-print("… reappears at the start of the next:")
-print(" ", second.page_content[:120].replace("\n", " "), "…")
+    neighbours = [(a, b) for a, b in zip(chunks, chunks[1:]) if a.metadata["url"] == b.metadata["url"]]
+    overlapping = [(a, b) for a, b in neighbours
+                   if b.metadata["start_index"] < a.metadata["start_index"] + len(a.page_content)]
+    print(f"\nNeighbouring chunks that really overlap: {len(overlapping)} of {len(neighbours)}")
 
-tiny = [chunk for chunk in chunks if len(chunk.page_content) < 100]
-print(f"\nTiny chunks (< 100 characters): {len(tiny)}, e.g. {tiny[0].page_content!r}")
+    first, second = overlapping[0]
+    print("Example: the end of one chunk …")
+    print("  …", first.page_content[-120:].replace("\n", " "))
+    print("… reappears at the start of the next:")
+    print(" ", second.page_content[:120].replace("\n", " "), "…")
+
+    tiny = [chunk for chunk in chunks if len(chunk.page_content) < 100]
+    print(f"\nTiny chunks (< 100 characters): {len(tiny)}, e.g. {tiny[0].page_content!r}")
