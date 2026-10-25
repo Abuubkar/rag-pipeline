@@ -25,8 +25,8 @@ Status: ✅ done · 🔜 next · ⬜ planned
 | 6 | Load documents | What a `Document` is (text + metadata); how every loader works (`lazy_load`/`load`) | Our own `BaseLoader` (langchain-core) | `huggingface-hub` | ✅ |
 | 7 | Split into chunks | Why we chunk; chunk size and overlap | `RecursiveCharacterTextSplitter` | `langchain-text-splitters` | ✅ |
 | 8 | Embeddings | Turning text into vectors; cosine similarity | `OllamaEmbeddings` | (step 1 package) | ✅ |
-| 9 | In-memory vector store | Storing vectors and searching by similarity | `InMemoryVectorStore` | — | 🔜 |
-| 10 | Persistent vector store | Keeping vectors in a real database | `PGVector` + Postgres in Docker | `langchain-postgres`, `psycopg` | ⬜ |
+| 9 | In-memory vector store | Storing vectors and searching by similarity | `InMemoryVectorStore` | `numpy` | ✅ |
+| 10 | Persistent vector store | Keeping vectors in a real database | `PGVector` + Postgres in Docker | `langchain-postgres`, `psycopg` | 🔜 |
 
 ## Part C: Retrieval and answering (the core RAG loop)
 
@@ -84,6 +84,7 @@ Filled in as we hit them. These are the reasons to reach for LangGraph, LangSmit
 | 6 | The old `HuggingFaceDatasetLoader` (a) can't pin a dataset `revision`, (b) needs `datasets` but doesn't declare it (fails only at `.load()`), and (c) runs every text through `json.dumps`, silently turning articles into escaped JSON strings (quotes, literal `\n`, `\u2019`). | A small custom `BaseLoader` with `hf_hub_download(revision=…)` |
 | 7 | `RecursiveCharacterTextSplitter`'s `chunk_overlap` is not guaranteed: it only carries over whole pieces, so when a cut lands after a paragraph longer than the overlap, nothing repeats (only 48% of neighbouring chunks overlapped here). It also leaves tiny fragments (53 chunks under 100 characters). | Know it's best-effort; check overlap and tiny chunks on your own data |
 | 8 | `OllamaEmbeddings` doesn't add model-specific task prefixes (`search_document:` / `search_query:` for nomic-embed-text), and has no separate setting for document vs query text. Forgetting them silently lowers retrieval quality. | Add the prefixes yourself, the same way at indexing and query time |
+| 9 | `InMemoryVectorStore` (in `langchain-core`) needs `numpy` to search, but `langchain-core` doesn't install it: it fails with an ImportError at the first search. | Add `numpy` yourself |
 
 ## Notes
 
