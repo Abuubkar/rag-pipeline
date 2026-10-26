@@ -1,0 +1,17 @@
+# Postgres 17 with the pgvector extension, for step 10 onward.
+# Start: docker compose up -d     Stop: docker compose down (data stays in the volume)
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: rag-langchain-postgres
+    environment:
+      POSTGRES_USER: rag
+      POSTGRES_PASSWORD: rag
+      POSTGRES_DB: rag
+    ports:
+      - "5434:5432"   # 5434 on your Mac, so it doesn't clash with main branch's database (5433)
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

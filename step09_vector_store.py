@@ -30,14 +30,16 @@ class NomicEmbeddings(OllamaEmbeddings):
         return super().embed_query("search_query: " + text)
 
 
-articles = MultiHopRAGLoader(revision=REVISION).load()[:30]
-chunks = splitter.split_documents(articles)
+# Runs only with `uv run step09_vector_store.py`, not when another step imports NomicEmbeddings.
+if __name__ == "__main__":
+    articles = MultiHopRAGLoader(revision=REVISION).load()[:30]
+    chunks = splitter.split_documents(articles)
 
-vector_store = InMemoryVectorStore(NomicEmbeddings(model="nomic-embed-text"))
-ids = vector_store.add_documents(chunks)  # embeds every chunk and stores it; returns one id per chunk
-print(f"Stored {len(ids)} chunks from {len(articles)} articles, e.g. id {ids[0]}")
+    vector_store = InMemoryVectorStore(NomicEmbeddings(model="nomic-embed-text"))
+    ids = vector_store.add_documents(chunks)  # embeds every chunk and stores it; returns one id per chunk
+    print(f"Stored {len(ids)} chunks from {len(articles)} articles, e.g. id {ids[0]}")
 
-for question in ["Where can I get discounts on Kindle and Echo devices?", "Why is the FTC suing Amazon?"]:
-    print(f"\nQ: {question}")
-    for chunk, score in vector_store.similarity_search_with_score(question, k=5):
-        print(f"  {score:.3f}  {chunk.metadata['title'][:60]}")
+    for question in ["Where can I get discounts on Kindle and Echo devices?", "Why is the FTC suing Amazon?"]:
+        print(f"\nQ: {question}")
+        for chunk, score in vector_store.similarity_search_with_score(question, k=5):
+            print(f"  {score:.3f}  {chunk.metadata['title'][:60]}")
