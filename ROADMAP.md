@@ -36,10 +36,10 @@ Status: ✅ done · 🔜 next · ⬜ planned
 | 12 | First RAG chain | Retrieve → put chunks in prompt → answer | LCEL chain | — | ✅ |
 | 13 | Sources and citations | Returning which chunks were used | `RunnablePassthrough.assign` | — | ✅ |
 | 14 | Keyword search | Why exact words still matter | Postgres full-text search via `PGVectorStore` + `HybridSearchConfig` (instead of `BM25Retriever`, which is in sunset `langchain-community`) | — | ✅ |
-| 15 | Hybrid search | Combining keyword + vector results | `EnsembleRetriever` | `langchain-classic` | ⬜ |
-| 16 | Multi-query | Asking the question several ways | `MultiQueryRetriever` | — | ⬜ |
-| 17 | Reranking | Letting the LLM reorder results | `ContextualCompressionRetriever` + `LLMListwiseRerank` | — | ⬜ |
-| 18 | Metadata filtering | "Only TechCrunch articles from October" | `SelfQueryRetriever` | — | ⬜ |
+| 15 | Hybrid search | Combining keyword + vector results; reciprocal rank fusion | `PGVectorStore` hybrid search (instead of legacy `EnsembleRetriever`) | — | ✅ |
+| 16 | Multi-query | Asking the question several ways | LCEL chain: LLM writes queries → `.batch` search → merge (instead of legacy `MultiQueryRetriever`) | — | ⬜ |
+| 17 | Reranking | Letting the LLM reorder results | LCEL chain + structured output (instead of legacy `ContextualCompressionRetriever`) | — | ⬜ |
+| 18 | Metadata filtering | "Only TechCrunch articles from October" | Structured output → `PGVectorStore` `filter=` (instead of legacy `SelfQueryRetriever`) | — | ⬜ |
 
 ## Part D: Conversations
 
@@ -94,8 +94,10 @@ Filled in as we hit them. These are the reasons to reach for LangGraph, LangSmit
 | 14 | `PGVectorStore` writes the first query into the `HybridSearchConfig` it's given and reuses it, so with a shared config every later search returns the first query's results. No error, just wrong results. | Pass a new `HybridSearchConfig` on every call |
 | 14 | No keyword-only mode: it's half of hybrid search. The vector half is turned off with `primary_top_k=0`, but the query is still embedded. | Accept the wasted embedding call, or write the SQL yourself |
 | 14 | Keyword matching uses `plainto_tsquery`, which requires **every** word, and it can't be changed. Long natural questions get 0 results. | Keyword search for short, name-heavy queries; combine with vector search (step 15) |
+| 15 | The ready-made retrievers (`EnsembleRetriever`, `MultiQueryRetriever`, `ContextualCompressionRetriever`, `SelfQueryRetriever`) moved to the legacy `langchain-classic` in v1, and the current docs don't mention them. v1 has no replacements: it points to vector-store features, plain chains, agents and LangGraph. | Use the store's own hybrid search; build the rest as small LCEL chains |
+| 15 | Hybrid isn't automatically better. RRF trusts both lists equally and only looks at ranks, so neither search judges whether a chunk actually answers the question. | Tune `primary_top_k`/`secondary_top_k`, or rerank afterwards (step 17) |
 
 ## Notes
 
 - This order is a plan, not a contract. Steps can be split, merged or dropped as we go.
-- Steps 2–5, 9 and 11–14 need no new packages, because they use what earlier steps installed.
+- Steps 2–5, 9 and 11–15 need no new packages, because they use what earlier steps installed.
