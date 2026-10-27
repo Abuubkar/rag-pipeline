@@ -20,14 +20,24 @@ from step07_split import splitter
 class NomicEmbeddings(OllamaEmbeddings):
     """OllamaEmbeddings that adds the task prefixes nomic-embed-text was trained with.
 
-    The vector store calls embed_documents / embed_query itself, so the prefixes have to live here.
+    The vector store calls these methods itself, so the prefixes have to live here:
+    - The async versions too: PGVectorStore's sync methods call aembed_documents / aembed_query
+      internally, so overriding only the sync ones does nothing there.
+    - The query methods call super().embed_documents, because OllamaEmbeddings.embed_query calls
+      self.embed_documents, which would add "search_document: " on top of "search_query: ".
     """
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
         return super().embed_documents(["search_document: " + text for text in texts])
 
     def embed_query(self, text: str) -> list[float]:
-        return super().embed_query("search_query: " + text)
+        return super().embed_documents(["search_query: " + text])[0]
+
+    async def aembed_documents(self, texts: list[str]) -> list[list[float]]:
+        return await super().aembed_documents(["search_document: " + text for text in texts])
+
+    async def aembed_query(self, text: str) -> list[float]:
+        return (await super().aembed_documents(["search_query: " + text]))[0]
 
 
 # Runs only with `uv run step09_vector_store.py`, not when another step imports NomicEmbeddings.
