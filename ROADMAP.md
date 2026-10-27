@@ -34,8 +34,8 @@ Status: ✅ done · 🔜 next · ⬜ planned
 |---|---|---|---|---|---|
 | 11 | Retrievers | The retriever interface; top-k | `as_retriever()` (similarity, MMR) | — | ✅ |
 | 12 | First RAG chain | Retrieve → put chunks in prompt → answer | LCEL chain | — | ✅ |
-| 13 | Sources and citations | Returning which chunks were used | `RunnablePassthrough.assign` | — | 🔜 |
-| 14 | Keyword search | Why exact words still matter (BM25) | `BM25Retriever` (⚠️ lives in sunset `langchain-community`; recheck docs first) | `rank-bm25` | ⬜ |
+| 13 | Sources and citations | Returning which chunks were used | `RunnablePassthrough.assign` | — | ✅ |
+| 14 | Keyword search | Why exact words still matter (BM25) | `BM25Retriever` (⚠️ lives in sunset `langchain-community`; recheck docs first) | `rank-bm25` | 🔜 |
 | 15 | Hybrid search | Combining keyword + vector results | `EnsembleRetriever` | `langchain-classic` | ⬜ |
 | 16 | Multi-query | Asking the question several ways | `MultiQueryRetriever` | — | ⬜ |
 | 17 | Reranking | Letting the LLM reorder results | `ContextualCompressionRetriever` + `LLMListwiseRerank` | — | ⬜ |
