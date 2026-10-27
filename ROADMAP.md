@@ -35,7 +35,7 @@ Status: ✅ done · 🔜 next · ⬜ planned
 | 11 | Retrievers | The retriever interface; top-k | `as_retriever()` (similarity, MMR) | — | ✅ |
 | 12 | First RAG chain | Retrieve → put chunks in prompt → answer | LCEL chain | — | ✅ |
 | 13 | Sources and citations | Returning which chunks were used | `RunnablePassthrough.assign` | — | ✅ |
-| 14 | Keyword search | Why exact words still matter (BM25) | `BM25Retriever` (⚠️ lives in sunset `langchain-community`; recheck docs first) | `rank-bm25` | 🔜 |
+| 14 | Keyword search | Why exact words still matter | Postgres full-text search via `PGVectorStore` + `HybridSearchConfig` (instead of `BM25Retriever`, which is in sunset `langchain-community`) | — | ✅ |
 | 15 | Hybrid search | Combining keyword + vector results | `EnsembleRetriever` | `langchain-classic` | ⬜ |
 | 16 | Multi-query | Asking the question several ways | `MultiQueryRetriever` | — | ⬜ |
 | 17 | Reranking | Letting the LLM reorder results | `ContextualCompressionRetriever` + `LLMListwiseRerank` | — | ⬜ |
@@ -88,8 +88,12 @@ Filled in as we hit them. These are the reasons to reach for LangGraph, LangSmit
 | 10 | `PGVector` is deprecated (since `langchain-postgres` 0.0.14); the replacement is `PGVectorStore`. | Use `PGEngine` + `PGVectorStore` |
 | 10 | `init_vectorstore_table` has no "create if missing": it errors if the table exists, and `overwrite_existing=True` drops every stored embedding. | Catch `ProgrammingError` and keep the table |
 | 10 | `similarity_search_with_score` means different things per store: `InMemoryVectorStore` returns similarity (higher = better), `PGVectorStore` returns cosine distance (lower = better). | Check each store's score meaning before comparing or thresholding |
+| 14 | `BM25Retriever` still lives only in the sunset `langchain-community` (`langchain-classic` just redirects to it). | Use the vector store's own keyword search (Postgres full-text search here) |
+| 14 | `PGVectorStore` writes the first query into the `HybridSearchConfig` it's given and reuses it, so with a shared config every later search returns the first query's results. No error, just wrong results. | Pass a new `HybridSearchConfig` on every call |
+| 14 | No keyword-only mode: it's half of hybrid search. The vector half is turned off with `primary_top_k=0`, but the query is still embedded. | Accept the wasted embedding call, or write the SQL yourself |
+| 14 | Keyword matching uses `plainto_tsquery`, which requires **every** word, and it can't be changed. Long natural questions get 0 results. | Keyword search for short, name-heavy queries; combine with vector search (step 15) |
 
 ## Notes
 
 - This order is a plan, not a contract. Steps can be split, merged or dropped as we go.
-- Steps 2–5, 9 and 11–13 need no new packages, because they use what earlier steps installed.
+- Steps 2–5, 9 and 11–14 need no new packages, because they use what earlier steps installed.
