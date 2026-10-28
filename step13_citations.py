@@ -51,11 +51,13 @@ chain = (
     .assign(answer=prompt | llm | StrOutputParser())                             # + answer
 )
 
-result = chain.invoke({"question": "Why is the FTC suing Amazon?"})
+# Runs only with `uv run step13_citations.py`, not when another step imports the chain.
+if __name__ == "__main__":
+    result = chain.invoke({"question": "Why is the FTC suing Amazon?"})
 
-print("Keys returned:", list(result))
-print(f"\nAnswer:\n{result['answer']}")
-print("\nSources:")
-for n, document in enumerate(result["documents"], start=1):
-    print(f"  [{n}] {document.metadata['title'][:60]} — {document.metadata['source']}")
-    print(f"      {document.metadata['url']}")
+    print("Keys returned:", list(result))
+    print(f"\nAnswer:\n{result['answer']}")
+    print("\nSources:")
+    for n, document in enumerate(result["documents"], start=1):
+        print(f"  [{n}] {document.metadata['title'][:60]} — {document.metadata['source']}")
+        print(f"      {document.metadata['url']}")

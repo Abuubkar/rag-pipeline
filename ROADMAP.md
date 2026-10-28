@@ -45,9 +45,9 @@ Status: ✅ done · 🔜 next · ⬜ planned
 
 | # | Step | You learn | LangChain piece | Package | Status |
 |---|---|---|---|---|---|
-| 19 | Chat history | Passing previous turns to the model | `MessagesPlaceholder`, `InMemoryChatMessageHistory` | — | ⬜ |
+| 19 | Chat history | Passing previous turns to the model | `MessagesPlaceholder` + a plain list (`InMemoryChatMessageHistory` is deprecated) | — | ✅ |
 | 20 | Follow-up questions | Rewriting "what about him?" into a full question | History-aware rewrite chain | — | ⬜ |
-| 21 | Saved history | Keeping chats across restarts | `PostgresChatMessageHistory` | — | ⬜ |
+| 21 | Saved history | Keeping chats across restarts | ⚠️ `PostgresChatMessageHistory` builds on the deprecated `BaseChatMessageHistory`; the v1 way is a LangGraph checkpointer (`PostgresSaver`). Decide when we get there | — | ⬜ |
 
 ## Part E: Safety and quality
 
@@ -97,8 +97,9 @@ Filled in as we hit them. These are the reasons to reach for LangGraph, LangSmit
 | 15 | The ready-made retrievers (`EnsembleRetriever`, `MultiQueryRetriever`, `ContextualCompressionRetriever`, `SelfQueryRetriever`) moved to the legacy `langchain-classic` in v1, and the current docs don't mention them. v1 has no replacements: it points to vector-store features, plain chains, agents and LangGraph. | Use the store's own hybrid search; build the rest as small LCEL chains |
 | 15 | Hybrid isn't automatically better. RRF trusts both lists equally and only looks at ranks, so neither search judges whether a chunk actually answers the question. | Tune `primary_top_k`/`secondary_top_k`, or rerank afterwards (step 17) |
 | 16 | `with_structured_output(method="function_calling")` only accepts the exact class name as the tool name. gemma4 sometimes calls `search_queries` instead of `SearchQueries` (2 of 8 dataset questions), and LangChain raises `OutputParserException` instead of matching it. A retry at temperature 0 repeats the same mistake. | Wrap the step in `.with_fallbacks([...], exceptions_to_handle=(OutputParserException,))` |
+| 19 | LangChain's chat-history helpers are deprecated: `RunnableWithMessageHistory` (since 1.3.3) and `InMemoryChatMessageHistory` / `BaseChatMessageHistory` (since 1.6.4), all to be removed in 2.0. The docs point to LangGraph persistence (`create_agent` + a checkpointer). LangChain alone no longer has a supported way to store chat history. | A plain list + `MessagesPlaceholder`; a LangGraph checkpointer to persist |
 
 ## Notes
 
 - This order is a plan, not a contract. Steps can be split, merged or dropped as we go.
-- Steps 2–5, 9 and 11–18 need no new packages, because they use what earlier steps installed.
+- Steps 2–5, 9 and 11–19 need no new packages, because they use what earlier steps installed.
