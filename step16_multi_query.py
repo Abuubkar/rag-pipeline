@@ -19,8 +19,9 @@ Run:  uv run step16_multi_query.py   (Postgres from step 10 and Ollama must be r
 from operator import itemgetter
 
 from langchain_core.documents import Document
+from langchain_core.exceptions import OutputParserException
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough
+from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_ollama import ChatOllama
 from pydantic import BaseModel, Field
 
@@ -46,7 +47,13 @@ prompt = ChatPromptTemplate.from_messages(
         ("human", "{question}"),
     ]
 )
-query_writer = prompt | llm.with_structured_output(SearchQueries, method="function_calling")
+# The model sometimes names its tool call "search_queries" instead of "SearchQueries", and LangChain
+# raises OutputParserException instead of accepting it. with_fallbacks catches that error and runs the
+# fallback instead: no extra queries, so only the original question is searched.
+query_writer = (prompt | llm.with_structured_output(SearchQueries, method="function_calling")).with_fallbacks(
+    [RunnableLambda(lambda inputs: SearchQueries(queries=[]))],
+    exceptions_to_handle=(OutputParserException,),
+)
 
 
 def unique_documents(document_lists: list[list[Document]]) -> list[Document]:
@@ -74,6 +81,10 @@ questions = [
     "their performance compared to the previous year, while the 'Sporting News' article indicates that "
     "the South Africa national rugby team has already achieved an improvement to reach the Rugby World "
     "Cup semi-finals?",
+    # Makes the query writer fail (wrong tool name), so the fallback runs.
+    "Which online betting platform provides a welcome bonus of up to $1000 in bonus bets for new customers' "
+    "first losses, runs NBA betting promotions, and is anticipated to extend the same sign-up offer to new "
+    "users in Vermont, as reported by both CBSSports.com and Sporting News?",
 ]
 
 for question in questions:

@@ -96,6 +96,7 @@ Filled in as we hit them. These are the reasons to reach for LangGraph, LangSmit
 | 14 | Keyword matching uses `plainto_tsquery`, which requires **every** word, and it can't be changed. Long natural questions get 0 results. | Keyword search for short, name-heavy queries; combine with vector search (step 15) |
 | 15 | The ready-made retrievers (`EnsembleRetriever`, `MultiQueryRetriever`, `ContextualCompressionRetriever`, `SelfQueryRetriever`) moved to the legacy `langchain-classic` in v1, and the current docs don't mention them. v1 has no replacements: it points to vector-store features, plain chains, agents and LangGraph. | Use the store's own hybrid search; build the rest as small LCEL chains |
 | 15 | Hybrid isn't automatically better. RRF trusts both lists equally and only looks at ranks, so neither search judges whether a chunk actually answers the question. | Tune `primary_top_k`/`secondary_top_k`, or rerank afterwards (step 17) |
+| 16 | `with_structured_output(method="function_calling")` only accepts the exact class name as the tool name. gemma4 sometimes calls `search_queries` instead of `SearchQueries` (2 of 8 dataset questions), and LangChain raises `OutputParserException` instead of matching it. A retry at temperature 0 repeats the same mistake. | Wrap the step in `.with_fallbacks([...], exceptions_to_handle=(OutputParserException,))` |
 
 ## Notes
 

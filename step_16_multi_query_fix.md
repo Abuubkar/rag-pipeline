@@ -125,3 +125,25 @@ Q: Does 'The Age' article suggest that Australia's Davis Cup team is aiming for 
     Sporting News         Where to watch England vs South Africa: Live stream, TV chan
     Sporting News         Where to watch England vs South Africa: Live stream, TV chan
 ```
+
+---
+
+## Second fix: fallback when the query writer crashes
+
+Running the query writer on 8 dataset questions, 2 crashed with
+`OutputParserException: Unknown tool type: 'search_queries'. Available tools: SearchQueries`:
+the model named its tool call in snake_case, and LangChain only accepts the exact class name.
+
+```python
+query_writer = (prompt | llm.with_structured_output(SearchQueries, method="function_calling")).with_fallbacks(
+    [RunnableLambda(lambda inputs: SearchQueries(queries=[]))],
+    exceptions_to_handle=(OutputParserException,),
+)
+```
+
+| Betting question (CBSSports.com + Sporting News) | Result |
+|---|---|
+| Before | the whole script crashed |
+| After | fallback → no extra queries → only the original question is searched (same 5 chunks as one search) |
+
+The SBF and Davis Cup questions are unchanged (same queries, same chunks).
