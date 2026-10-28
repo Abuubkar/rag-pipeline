@@ -73,30 +73,32 @@ chain = (
     .assign(documents=itemgetter("queries") | retriever.map() | unique_documents)  # + documents
 )
 
-questions = [
-    "Who is the individual associated with the cryptocurrency industry facing a criminal trial "
-    "on fraud and conspiracy charges, as reported by both The Verge and TechCrunch?",
-    # From the MultiHop-RAG question set. Needs one article from The Age, one from Sporting News.
-    "Does 'The Age' article suggest that Australia's Davis Cup team is aiming for an improvement in "
-    "their performance compared to the previous year, while the 'Sporting News' article indicates that "
-    "the South Africa national rugby team has already achieved an improvement to reach the Rugby World "
-    "Cup semi-finals?",
-    # Makes the query writer fail (wrong tool name), so the fallback runs.
-    "Which online betting platform provides a welcome bonus of up to $1000 in bonus bets for new customers' "
-    "first losses, runs NBA betting promotions, and is anticipated to extend the same sign-up offer to new "
-    "users in Vermont, as reported by both CBSSports.com and Sporting News?",
-]
+# Runs only with `uv run step16_multi_query.py`, not when another step imports the chain.
+if __name__ == "__main__":
+    questions = [
+        "Who is the individual associated with the cryptocurrency industry facing a criminal trial "
+        "on fraud and conspiracy charges, as reported by both The Verge and TechCrunch?",
+        # From the MultiHop-RAG question set. Needs one article from The Age, one from Sporting News.
+        "Does 'The Age' article suggest that Australia's Davis Cup team is aiming for an improvement in "
+        "their performance compared to the previous year, while the 'Sporting News' article indicates that "
+        "the South Africa national rugby team has already achieved an improvement to reach the Rugby World "
+        "Cup semi-finals?",
+        # Makes the query writer fail (wrong tool name), so the fallback runs.
+        "Which online betting platform provides a welcome bonus of up to $1000 in bonus bets for new customers' "
+        "first losses, runs NBA betting promotions, and is anticipated to extend the same sign-up offer to new "
+        "users in Vermont, as reported by both CBSSports.com and Sporting News?",
+    ]
 
-for question in questions:
-    print(f"\nQ: {question}")
+    for question in questions:
+        print(f"\nQ: {question}")
 
-    single = retriever.invoke(question)
-    print(f"\n  one search: {len(single)} chunks")
-    for document in single:
-        print(f"    {document.metadata['source'][:20]:20}  {document.metadata['title'][:60]}")
+        single = retriever.invoke(question)
+        print(f"\n  one search: {len(single)} chunks")
+        for document in single:
+            print(f"    {document.metadata['source'][:20]:20}  {document.metadata['title'][:60]}")
 
-    result = chain.invoke({"question": question})
-    print(f"\n  multi-query: {result['queries']}")
-    print(f"  → {len(result['documents'])} unique chunks")
-    for document in result["documents"]:
-        print(f"    {document.metadata['source'][:20]:20}  {document.metadata['title'][:60]}")
+        result = chain.invoke({"question": question})
+        print(f"\n  multi-query: {result['queries']}")
+        print(f"  → {len(result['documents'])} unique chunks")
+        for document in result["documents"]:
+            print(f"    {document.metadata['source'][:20]:20}  {document.metadata['title'][:60]}")
