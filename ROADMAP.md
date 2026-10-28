@@ -5,6 +5,9 @@ that does it, and the package it needs. Packages are installed **only when that 
 
 Status: ✅ done · 🔜 next · ⬜ planned
 
+The step scripts and their notes live in [`walkthrough/`](walkthrough/). Run them from the repo root,
+e.g. `uv run walkthrough/step12_rag_chain.py`. Which LangChain piece to use when: [`LADDER.md`](LADDER.md).
+
 ---
 
 ## Part A: Talking to an LLM

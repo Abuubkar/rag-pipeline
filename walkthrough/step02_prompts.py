@@ -6,7 +6,7 @@ used for every question; only the {question} (and later the retrieved {context})
 
     template  +  variables   ──invoke──►  prompt value (the finished messages)  ──►  model
 
-Run:  uv run step02_prompts.py
+Run:  uv run walkthrough/step02_prompts.py
 """
 
 from langchain_core.prompts import ChatPromptTemplate

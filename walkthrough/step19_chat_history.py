@@ -12,7 +12,7 @@ The history is a plain Python list: after each turn we append the question and t
 (LangChain's InMemoryChatMessageHistory and RunnableWithMessageHistory used to do this for you,
 but both are deprecated in v1; the docs now point to LangGraph persistence. See ROADMAP.)
 
-Run:  uv run step19_chat_history.py   (Postgres from step 10 and Ollama must be running)
+Run:  uv run walkthrough/step19_chat_history.py   (Postgres from step 10 and Ollama must be running)
 """
 
 from operator import itemgetter

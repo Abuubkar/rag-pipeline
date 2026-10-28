@@ -7,7 +7,7 @@ no words. Cosine similarity measures that: 1.0 = same direction, ~0 = unrelated.
 This is how RAG finds relevant chunks: embed every chunk once, embed the question, and pick the
 chunks whose vectors are closest to the question's.
 
-Run:  uv run step08_embeddings.py   (Ollama must be running, with `ollama pull nomic-embed-text`)
+Run:  uv run walkthrough/step08_embeddings.py   (Ollama must be running, with `ollama pull nomic-embed-text`)
 """
 
 import math

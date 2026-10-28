@@ -14,7 +14,7 @@ search_type picks *how* to choose results:
 - "mmr" (maximal marginal relevance): close to the question AND different from each other,
   so the results cover more articles. Useful when an answer needs facts from several sources.
 
-Run:  uv run step11_retriever.py   (Postgres from step 10 must be running)
+Run:  uv run walkthrough/step11_retriever.py   (Postgres from step 10 must be running)
 """
 
 from step10_postgres import vector_store

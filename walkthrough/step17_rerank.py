@@ -12,7 +12,7 @@ scored in parallel with .batch(), sorted by score, and the top 5 are kept:
 This is "pointwise" reranking: each chunk is judged on its own. (The legacy langchain-classic
 LLMListwiseRerank sends all chunks in one prompt and asks for an order instead.)
 
-Run:  uv run step17_rerank.py   (Postgres from step 10 and Ollama must be running)
+Run:  uv run walkthrough/step17_rerank.py   (Postgres from step 10 and Ollama must be running)
 """
 
 from langchain_core.documents import Document

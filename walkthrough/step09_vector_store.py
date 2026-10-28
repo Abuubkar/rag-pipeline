@@ -7,7 +7,7 @@ documents, and once per question when you search. No hand-written cosine similar
 InMemoryVectorStore keeps everything in a Python dict, so it's rebuilt on every run.
 Step 10 moves to Postgres so the vectors are saved.
 
-Run:  uv run step09_vector_store.py
+Run:  uv run walkthrough/step09_vector_store.py
 """
 
 from langchain_core.vectorstores import InMemoryVectorStore
@@ -40,7 +40,7 @@ class NomicEmbeddings(OllamaEmbeddings):
         return (await super().aembed_documents(["search_query: " + text]))[0]
 
 
-# Runs only with `uv run step09_vector_store.py`, not when another step imports NomicEmbeddings.
+# Runs only with `uv run walkthrough/step09_vector_store.py`, not when another step imports NomicEmbeddings.
 if __name__ == "__main__":
     articles = MultiHopRAGLoader(revision=REVISION).load()[:30]
     chunks = splitter.split_documents(articles)

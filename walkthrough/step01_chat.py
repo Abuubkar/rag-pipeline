@@ -5,7 +5,7 @@ A *chat model* takes a list of messages and returns one new message.
 - HumanMessage:  what the user says
 - AIMessage:     what the model replies (this is what `invoke` returns)
 
-Run:  uv run step01_chat.py   (Ollama must be running)
+Run:  uv run walkthrough/step01_chat.py   (Ollama must be running)
 """
 
 from langchain_core.messages import HumanMessage, SystemMessage

@@ -9,7 +9,7 @@ of the next, and the result is itself a Runnable with invoke / stream / batch.
 The prompt already has the RAG shape: {context} + {question}. For now we write the context
 by hand; from step 12 a retriever will fill it automatically.
 
-Run:  uv run step03_chains.py
+Run:  uv run walkthrough/step03_chains.py
 """
 
 from langchain_core.output_parsers import StrOutputParser

@@ -13,7 +13,7 @@ Built from parts we already know: structured output (step 5), a retriever (step 
 .assign (step 13). New: `retriever.map()`, which runs a Runnable on every item of a list.
 (LangChain's ready-made MultiQueryRetriever is in the legacy langchain-classic; see ROADMAP.)
 
-Run:  uv run step16_multi_query.py   (Postgres from step 10 and Ollama must be running)
+Run:  uv run walkthrough/step16_multi_query.py   (Postgres from step 10 and Ollama must be running)
 """
 
 from operator import itemgetter
@@ -73,7 +73,7 @@ chain = (
     .assign(documents=itemgetter("queries") | retriever.map() | unique_documents)  # + documents
 )
 
-# Runs only with `uv run step16_multi_query.py`, not when another step imports the chain.
+# Runs only with `uv run walkthrough/step16_multi_query.py`, not when another step imports the chain.
 if __name__ == "__main__":
     questions = [
         "Who is the individual associated with the cryptocurrency industry facing a criminal trial "

@@ -14,7 +14,7 @@ PGVectorStore has keyword search built in, using Postgres full-text search:
 It comes as part of HybridSearchConfig (step 15 combines both searches). primary_top_k=0 turns
 the vector half off, leaving keyword search only.
 
-Run:  uv run step14_keyword.py   (Postgres from step 10 must be running)
+Run:  uv run walkthrough/step14_keyword.py   (Postgres from step 10 must be running)
 """
 
 from langchain_core.documents import Document

@@ -11,7 +11,7 @@ model, then parses the JSON back into the class. *How* it sends the schema matte
 We'll use this later to decide things *about* a question before answering it
 (guardrails in step 22, query rewriting in step 16).
 
-Run:  uv run step05_structured.py
+Run:  uv run walkthrough/step05_structured.py
 """
 
 from typing import Literal

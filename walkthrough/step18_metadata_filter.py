@@ -17,7 +17,7 @@ Ollama can only produce an exact, valid name (no typos, no misnamed tool as in s
 
     question ─► LLM plan: [(query, source), …] ─► filtered search for each ─► merge ─► documents
 
-Run:  uv run step18_metadata_filter.py   (Postgres from step 10 and Ollama must be running)
+Run:  uv run walkthrough/step18_metadata_filter.py   (Postgres from step 10 and Ollama must be running)
 """
 
 from operator import itemgetter
@@ -71,7 +71,7 @@ chain = (
     .assign(documents=itemgetter("searches") | RunnableLambda(search).map() | unique_documents)
 )
 
-# Runs only with `uv run step18_metadata_filter.py`, not when another step imports the chain.
+# Runs only with `uv run walkthrough/step18_metadata_filter.py`, not when another step imports the chain.
 if __name__ == "__main__":
     questions = [
         "Does 'The Age' article suggest that Australia's Davis Cup team is aiming for an improvement in "

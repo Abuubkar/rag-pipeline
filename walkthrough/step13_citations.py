@@ -11,7 +11,7 @@ runnable from that dict. Chaining .assign() calls builds the dict up step by ste
 The chunks are numbered [1]..[5] in the prompt and the model is asked to cite them, so each
 claim in the answer can be traced back to an article.
 
-Run:  uv run step13_citations.py
+Run:  uv run walkthrough/step13_citations.py
 """
 
 from operator import itemgetter
@@ -51,7 +51,7 @@ chain = (
     .assign(answer=prompt | llm | StrOutputParser())                             # + answer
 )
 
-# Runs only with `uv run step13_citations.py`, not when another step imports the chain.
+# Runs only with `uv run walkthrough/step13_citations.py`, not when another step imports the chain.
 if __name__ == "__main__":
     result = chain.invoke({"question": "Why is the FTC suing Amazon?"})
 

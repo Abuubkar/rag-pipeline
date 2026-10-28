@@ -8,7 +8,7 @@ words almost immediately. That's why every chat app streams.
 Because every piece of the chain is a Runnable, streaming the *whole chain* just works:
 the prompt runs once, the model streams, and StrOutputParser passes each chunk through as text.
 
-Run:  uv run step04_streaming.py
+Run:  uv run walkthrough/step04_streaming.py
 """
 
 import time

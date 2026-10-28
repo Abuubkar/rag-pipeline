@@ -8,7 +8,7 @@ Everything so far, joined into one Runnable:
 The dict at the start of the chain runs both branches on the same input (the question):
 one fetches and formats the chunks, the other passes the question through unchanged.
 
-Run:  uv run step12_rag_chain.py   (Postgres from step 10 and Ollama must be running)
+Run:  uv run walkthrough/step12_rag_chain.py   (Postgres from step 10 and Ollama must be running)
 """
 
 from langchain_core.documents import Document

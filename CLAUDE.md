@@ -48,7 +48,8 @@ Those limits are what would later justify LangGraph, LangSmith or Langfuse.
 - Minimal code; readable over clever. No abstractions until there are two real uses.
 - Explain each new concept briefly when it first appears (in chat, plus a short comment in code
   where it helps).
-- Every step file `stepNN_name.py` gets a matching `stepNN_name.md`. The project is also for
+- Learning steps live in `walkthrough/`. Every step file `walkthrough/stepNN_name.py` gets a matching
+  `walkthrough/stepNN_name.md`. The project is also for
   learning RAG and AI engineering, not just LangChain, so the `.md` has:
   - **Approaches:** a table of this step's approach and its alternatives (how it works, use it
     when, watch out for), with ✅ on the one the code uses.

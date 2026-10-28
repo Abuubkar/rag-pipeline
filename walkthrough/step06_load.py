@@ -17,7 +17,7 @@ LangChain has no maintained loader for Hugging Face datasets (the old one lived 
 `langchain-community` package), so we write our own. It's a few lines, and it shows how every
 loader works inside.
 
-Run:  uv run step06_load.py   (first run downloads ~7 MB into ~/.cache/huggingface)
+Run:  uv run walkthrough/step06_load.py   (first run downloads ~7 MB into ~/.cache/huggingface)
 """
 
 import json
@@ -54,7 +54,7 @@ class MultiHopRAGLoader(BaseLoader):
             yield Document(page_content=article["body"], metadata=metadata)
 
 
-# Runs only with `uv run step06_load.py`, not when another step imports the loader.
+# Runs only with `uv run walkthrough/step06_load.py`, not when another step imports the loader.
 if __name__ == "__main__":
     loader = MultiHopRAGLoader(revision=REVISION)
     docs = loader.load()  # we didn't write load(): BaseLoader builds it from lazy_load()

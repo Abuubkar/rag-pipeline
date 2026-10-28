@@ -9,7 +9,7 @@ survive restarts: embed once, search many times.
 Each chunk gets a *stable* id derived from its article URL and position, so re-running this
 script only embeds chunks that aren't stored yet.
 
-Run:  docker compose up -d   then   uv run step10_postgres.py
+Run:  docker compose up -d   then   uv run walkthrough/step10_postgres.py
 """
 
 import uuid

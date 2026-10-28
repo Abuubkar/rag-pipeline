@@ -9,7 +9,7 @@ so chunks end at natural boundaries. `chunk_overlap` repeats the end of one chun
 the next, but only in whole pieces: if the cut falls at a paragraph longer than the overlap,
 nothing is repeated. Here only about half of neighbouring chunks actually overlap.
 
-Run:  uv run step07_split.py
+Run:  uv run walkthrough/step07_split.py
 """
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -22,7 +22,7 @@ splitter = RecursiveCharacterTextSplitter(
     add_start_index=True, # records where each chunk starts in its article
 )
 
-# Runs only with `uv run step07_split.py`, not when another step imports the splitter.
+# Runs only with `uv run walkthrough/step07_split.py`, not when another step imports the splitter.
 if __name__ == "__main__":
     articles = MultiHopRAGLoader(revision=REVISION).load()
     chunks = splitter.split_documents(articles)

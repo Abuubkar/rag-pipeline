@@ -13,7 +13,7 @@ scores, so it rises to the top.
 
 Keyword-only and vector-only are the same search with one half turned off (top_k=0).
 
-Run:  uv run step15_hybrid.py   (Postgres from step 10 must be running)
+Run:  uv run walkthrough/step15_hybrid.py   (Postgres from step 10 must be running)
 """
 
 from langchain_core.documents import Document
