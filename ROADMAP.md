@@ -39,7 +39,7 @@ Status: ✅ done · 🔜 next · ⬜ planned
 | 15 | Hybrid search | Combining keyword + vector results; reciprocal rank fusion | `PGVectorStore` hybrid search (instead of legacy `EnsembleRetriever`) | — | ✅ |
 | 16 | Multi-query | Asking the question several ways | LCEL chain: LLM writes queries → `retriever.map()` → merge, plus the original question (instead of legacy `MultiQueryRetriever`) | — | ✅ |
 | 17 | Reranking | Letting the LLM reorder results | LCEL chain: LLM scores each chunk 0–10 with `.batch` + structured output, keep the top 5 (instead of legacy `ContextualCompressionRetriever`) | — | ✅ |
-| 18 | Metadata filtering | "Only TechCrunch articles from October" | Structured output → `PGVectorStore` `filter=` (instead of legacy `SelfQueryRetriever`) | — | ⬜ |
+| 18 | Metadata filtering | "Only TechCrunch articles from October" | LLM plans (query, source) searches with structured output → `PGVectorStore` `filter=` (instead of legacy `SelfQueryRetriever`) | — | ✅ |
 
 ## Part D: Conversations
 
@@ -101,4 +101,4 @@ Filled in as we hit them. These are the reasons to reach for LangGraph, LangSmit
 ## Notes
 
 - This order is a plan, not a contract. Steps can be split, merged or dropped as we go.
-- Steps 2–5, 9 and 11–17 need no new packages, because they use what earlier steps installed.
+- Steps 2–5, 9 and 11–18 need no new packages, because they use what earlier steps installed.
