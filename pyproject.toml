@@ -13,3 +13,12 @@ dependencies = [
     "pydantic>=2",
     "sqlalchemy>=2",
 ]
+
+# The `rag` command: `uv run rag ingest | ask "…" | chat`
+[project.scripts]
+rag = "rag_langchain.cli:main"
+
+# Builds src/rag_langchain into an installable package (only used at build time, not at runtime).
+[build-system]
+requires = ["uv_build>=0.11.7,<0.12"]
+build-backend = "uv_build"

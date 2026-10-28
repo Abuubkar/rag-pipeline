@@ -8,6 +8,15 @@ Status: ✅ done · 🔜 next · ⬜ planned
 The step scripts and their notes live in [`walkthrough/`](walkthrough/). Run them from the repo root,
 e.g. `uv run walkthrough/step12_rag_chain.py`. Which LangChain piece to use when: [`LADDER.md`](LADDER.md).
 
+**Production pipeline:** [`src/rag_langchain/`](src/rag_langchain/) combines the preferred pieces of steps 6–19 into
+one package with a single entry point:
+
+```bash
+uv run rag ingest              # load, split, embed and store (skips stored chunks)
+uv run rag ask "question"      # plan searches → filtered search → rerank → answer with citations
+uv run rag chat                # follow-up questions in one conversation
+```
+
 ---
 
 ## Part A: Talking to an LLM
