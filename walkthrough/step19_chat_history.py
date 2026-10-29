@@ -44,21 +44,22 @@ chain = (
     .assign(answer=prompt | llm | StrOutputParser())
 )
 
-history: list[BaseMessage] = []  # the whole "memory" of this conversation
+if __name__ == "__main__":
+    history: list[BaseMessage] = []  # the whole "memory" of this conversation
 
-questions = [
-    "Who is facing a criminal trial for fraud, as reported by The Verge?",
-    "What did TechCrunch report about him?",  # "him" only makes sense with the history
-    "What was my first question?",            # answerable from the history alone
-]
+    questions = [
+        "Who is facing a criminal trial for fraud, as reported by The Verge?",
+        "What did TechCrunch report about him?",  # "him" only makes sense with the history
+        "What was my first question?",            # answerable from the history alone
+    ]
 
-for question in questions:
-    result = chain.invoke({"question": question, "history": history})
-    history += [HumanMessage(question), AIMessage(result["answer"])]  # remember this turn
+    for question in questions:
+        result = chain.invoke({"question": question, "history": history})
+        history += [HumanMessage(question), AIMessage(result["answer"])]  # remember this turn
 
-    print(f"\nQ: {question}")
-    print(f"  searched for: {question!r}")
-    for document in result["documents"]:
-        print(f"    {document.metadata['source'][:20]:20}  {document.metadata['title'][:60]}")
-    print(f"A: {result['answer']}")
-    print(f"  (history now holds {len(history)} messages)")
+        print(f"\nQ: {question}")
+        print(f"  searched for: {question!r}")
+        for document in result["documents"]:
+            print(f"    {document.metadata['source'][:20]:20}  {document.metadata['title'][:60]}")
+        print(f"A: {result['answer']}")
+        print(f"  (history now holds {len(history)} messages)")
