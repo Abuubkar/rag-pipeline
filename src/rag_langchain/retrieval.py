@@ -49,5 +49,9 @@ def retrieve(question: str) -> list[Document]:
     # The original question is always searched too, so a poor plan can only add chunks.
     plans = [{"query": question, "source": None}] + planner().invoke({"question": question})["searches"]
     results = RunnableLambda(search).batch(plans)  # all searches in parallel
-    unique = {document.id: document for documents in results for document in documents}  # dedupe by chunk id
+    unique = {}
+    for plan, documents in zip(plans, results):
+        for document in documents:
+            document.metadata["query"] = plan["query"]  # reranking grades the chunk against its search
+            unique.setdefault(document.id, document)  # dedupe by chunk id
     return list(unique.values())

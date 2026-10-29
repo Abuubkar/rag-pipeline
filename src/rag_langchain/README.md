@@ -24,7 +24,7 @@ The names follow the RAG stages in order: loaders → ingestion → vectorstore 
 | [`vectorstore.py`](vectorstore.py) | The Postgres vector store, and the list of publication names | 10 |
 | [`ingestion.py`](ingestion.py) | Load → split → embed only the chunks not stored yet | 7, 10 |
 | [`retrieval.py`](retrieval.py) | Plan (query, publication) searches → filtered vector search → dedupe | 16, 18 |
-| [`reranking.py`](reranking.py) | The LLM scores each candidate 0–10; keep the top 5 | 17 |
+| [`reranking.py`](reranking.py) | The LLM scores each candidate 0–10, seeing the full question and the search that found it; keep the best of every search, then the top scores up to 5 | 17 |
 | [`generation.py`](generation.py) | The full chain: retrieve → rerank → answer with citations and history | 12, 13, 19 |
 
 ## Who imports whom
@@ -90,11 +90,11 @@ sequenceDiagram
     ret->>llm: PLAN_PROMPT → [(query, source), …]
     ret->>pg: one similarity_search per plan,<br/>filter={"source": …} when set,<br/>plus the original question
     pg-->>ret: 5 chunks per search
-    ret-->>gen: candidates (deduplicated)
+    ret-->>gen: candidates: chunks, each tagged with metadata["query"]
 
     gen->>rr: rerank(question, candidates)
-    rr->>llm: GRADE_PROMPT per chunk (in parallel) → score 0–10
-    rr-->>gen: top 5 chunks (score > 0)
+    rr->>llm: GRADE_PROMPT per chunk: question + its search query (in parallel) → score 0–10
+    rr-->>gen: best chunk of every search + top scores (score > 0)
 
     gen->>llm: ANSWER_PROMPT: numbered excerpts + history + question
     llm-->>gen: answer with [n] citations
@@ -111,8 +111,8 @@ sequenceDiagram
 | After | Dict keys |
 |---|---|
 | input | `question`, `history` |
-| `.assign(candidates=…)` | + `candidates`: every unique chunk from the planned searches (often 10–25) |
-| `.assign(documents=…)` | + `documents`: the top 5 after reranking |
+| `.assign(candidates=…)` | + `candidates`: chunks from every search, deduplicated, each with `metadata["query"]` = the search that found it (often 10–25 chunks) |
+| `.assign(documents=…)` | + `documents`: the best chunk of every search, then the highest scores up to 5 |
 | `.assign(context=…)` | + `context`: the documents as numbered text |
 | `.assign(answer=…)` | + `answer`: the LLM's reply with `[n]` citations |
 

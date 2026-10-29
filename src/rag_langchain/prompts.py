@@ -17,16 +17,18 @@ PLAN_PROMPT = ChatPromptTemplate.from_messages(
 )
 
 # reranking.py: score one excerpt from 0 to 10. (walkthrough step 17)
+# Shows the search that found the excerpt, so a chunk answering one part of the question isn't scored 0.
 GRADE_PROMPT = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            "You grade how useful a news excerpt is for answering a question. Reply with a score from 0 to 10:\n"
+            "You grade how useful a news excerpt is for answering a question. The question may have several parts; "
+            "judge the excerpt by the part it answers best. Reply with a score from 0 to 10:\n"
             "10 = it directly answers the question or one part of it\n"
             "5 = same topic, but doesn't answer it\n"
             "0 = unrelated",
         ),
-        ("human", "Question: {question}\n\nExcerpt:\n{excerpt}"),
+        ("human", "Question: {question}\nThe excerpt was found by searching for: {query}\n\nExcerpt:\n{excerpt}"),
     ]
 )
 

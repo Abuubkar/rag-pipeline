@@ -25,3 +25,8 @@ Notes for [`step17_rerank.py`](step17_rerank.py).
 - One LLM call per chunk: about 1.5 minutes for 2 questions.
 - Scores are coarse (only 0, 5 and 10 were used), so ties are common and broken by list order.
 - Each chunk is judged alone, so nothing keeps sources balanced (The Verge AND TechCrunch).
+- Chunks are graded against the **whole** question. For a two-part question, a chunk answering only one part
+  can score 0: the Davis Cup question's rugby fact ("taken their game to new heights") scored 0 and was dropped;
+  graded against just the rugby half, the same chunk scored 10. Found later while building `src/`, which
+  shows the grader both the full question and the search query that found the chunk, and keeps the best
+  chunk of every search.

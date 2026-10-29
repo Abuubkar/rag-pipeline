@@ -23,7 +23,17 @@ def grader() -> Runnable:
 
 def rerank(question: str, documents: list[Document]) -> list[Document]:
     grades = grader().batch(  # one LLM call per chunk, run in parallel
-        [{"question": question, "excerpt": f"{d.metadata['title']}\n{d.page_content}"} for d in documents]
+        [
+            {"question": question, "query": d.metadata["query"], "excerpt": f"{d.metadata['title']}\n{d.page_content}"}
+            for d in documents
+        ]
     )
     scored = sorted(zip(documents, [grade.score for grade in grades]), key=lambda pair: pair[1], reverse=True)
-    return [document for document, score in scored[: settings.top_n] if score > 0]  # drop unrelated (0)
+    ranked = [document for document, score in scored if score > 0]  # drop unrelated (0)
+
+    # Keep the best chunk of every search, so one part of the question can't take every slot.
+    best_of_search = {}
+    for document in ranked:
+        best_of_search.setdefault(document.metadata["query"], document)
+    kept = list(best_of_search.values())
+    return kept + [document for document in ranked if document not in kept][: max(0, settings.top_n - len(kept))]
