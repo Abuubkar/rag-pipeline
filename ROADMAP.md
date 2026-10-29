@@ -66,7 +66,7 @@ uv run rag chat                # follow-up questions in one conversation
 
 | # | Step | You learn | LangChain piece | Package | Status |
 |---|---|---|---|---|---|
-| 22 | Input guardrail | Detecting prompt injection / off-topic questions | Structured output + `RunnableBranch` | — | ⬜ |
+| 22 | Routing + input guardrail | Sending news questions to RAG, conversation questions to the history, and off-topic or injection attempts to a refusal | Structured-output router + `RunnableBranch` | — | ✅ |
 | 23 | Grounded answers | Checking the answer is supported by sources | LLM-as-judge chain | — | ⬜ |
 | 24 | Evaluation | Measuring retrieval and answers on gold questions | Plain script over the chains | — | ⬜ |
 
@@ -117,4 +117,4 @@ Filled in as we hit them. These are the reasons to reach for LangGraph, LangSmit
 ## Notes
 
 - This order is a plan, not a contract. Steps can be split, merged or dropped as we go.
-- Steps 2–5, 9 and 11–21 need no new packages, because they use what earlier steps installed.
+- Steps 2–5, 9 and 11–22 (except 21b) need no new packages, because they use what earlier steps installed.
