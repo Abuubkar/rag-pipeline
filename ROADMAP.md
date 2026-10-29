@@ -59,7 +59,8 @@ uv run rag chat                # follow-up questions in one conversation
 |---|---|---|---|---|---|
 | 19 | Chat history | Passing previous turns to the model | `MessagesPlaceholder` + a plain list (`InMemoryChatMessageHistory` is deprecated) | — | ✅ |
 | 20 | Follow-up questions | Rewriting "what about him?" into a full question | An LLM rewrite step before retrieval, built with LCEL (the old `create_history_aware_retriever` is in legacy `langchain-classic`) | — | ✅ |
-| 21 | Saved history | Keeping chats across restarts | ⚠️ `PostgresChatMessageHistory` builds on the deprecated `BaseChatMessageHistory`; the v1 way is a LangGraph checkpointer (`PostgresSaver`). Decide when we get there | — | ⬜ |
+| 21 | Saved history | Keeping chats across restarts | Our own `chat_messages` table: one row per message, `messages_to_dict` / `messages_from_dict` (not the deprecated `PostgresChatMessageHistory`) | — | ✅ |
+| 21b | Saved history, the v1 way | The same, with LangGraph | A LangGraph checkpointer (`PostgresSaver`) per `thread_id` | `langgraph`, `langgraph-checkpoint-postgres` | ⬜ |
 
 ## Part E: Safety and quality
 
@@ -111,8 +112,9 @@ Filled in as we hit them. These are the reasons to reach for LangGraph, LangSmit
 | 16 | `with_structured_output(method="function_calling")` only accepts the exact class name as the tool name. gemma4 sometimes calls `search_queries` instead of `SearchQueries` (2 of 8 dataset questions), and LangChain raises `OutputParserException` instead of matching it. A retry at temperature 0 repeats the same mistake. | Wrap the step in `.with_fallbacks([...], exceptions_to_handle=(OutputParserException,))` |
 | 19 | LangChain's chat-history helpers are deprecated: `RunnableWithMessageHistory` (since 1.3.3) and `InMemoryChatMessageHistory` / `BaseChatMessageHistory` (since 1.6.4), all to be removed in 2.0. The docs point to LangGraph persistence (`create_agent` + a checkpointer). LangChain alone no longer has a supported way to store chat history. | A plain list + `MessagesPlaceholder`; a LangGraph checkpointer to persist |
 | 20 | `create_history_aware_retriever` moved to the legacy `langchain-classic` package in v1. It is only a branch (no history → search the question; else prompt → LLM → search), so core Runnables rebuild it in a few lines. | A rewrite chain + a plain function that skips it on the first turn |
+| 21 | `PostgresChatMessageHistory` (langchain-postgres) builds on the deprecated `BaseChatMessageHistory`, so LangChain alone has no supported class to save chat history. | Our own table with `messages_to_dict` / `messages_from_dict`; a LangGraph checkpointer (step 21b) |
 
 ## Notes
 
 - This order is a plan, not a contract. Steps can be split, merged or dropped as we go.
-- Steps 2–5, 9 and 11–20 need no new packages, because they use what earlier steps installed.
+- Steps 2–5, 9 and 11–21 need no new packages, because they use what earlier steps installed.
