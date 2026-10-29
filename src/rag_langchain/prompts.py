@@ -2,6 +2,20 @@
 
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
+# retrieval.py: turn a follow-up ("what about him?") into a stand-alone question. (walkthrough step 20)
+REWRITE_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "Rewrite the user's latest question so it can be understood without the conversation above: "
+            "replace words like 'him', 'it' or 'that' with what they refer to. Don't answer the question. "
+            "If it is already complete, return it unchanged. Reply with the question only.",
+        ),
+        MessagesPlaceholder("history"),
+        ("human", "{question}"),
+    ]
+)
+
 # retrieval.py: split a question into (query, publication) searches. (walkthrough step 18)
 PLAN_PROMPT = ChatPromptTemplate.from_messages(
     [

@@ -1,14 +1,15 @@
-"""Find candidate chunks: plan searches → filtered vector search → dedupe. (walkthrough steps 16, 18)"""
+"""Find candidate chunks: rewrite follow-ups → plan searches → filtered vector search → dedupe. (walkthrough steps 16, 18, 20)"""
 
 from functools import cache
 
 from langchain_core.documents import Document
 from langchain_core.exceptions import OutputParserException
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import Runnable, RunnableLambda
 
 from rag_langchain.config import settings
 from rag_langchain.llm import chat_model
-from rag_langchain.prompts import PLAN_PROMPT
+from rag_langchain.prompts import PLAN_PROMPT, REWRITE_PROMPT
 from rag_langchain.vectorstore import publication_names, vector_store
 
 
@@ -38,6 +39,18 @@ def planner() -> Runnable:
         [RunnableLambda(lambda _: {"searches": []})],
         exceptions_to_handle=(OutputParserException,),
     )
+
+
+@cache
+def rewriter() -> Runnable:
+    return REWRITE_PROMPT | chat_model() | StrOutputParser()
+
+
+def standalone_question(inputs: dict) -> str:
+    """{"question", "history"} → a question that can be searched without the history."""
+    if not inputs["history"]:  # first question: nothing to resolve, so skip the LLM call
+        return inputs["question"]
+    return rewriter().invoke(inputs)
 
 
 def search(plan: dict) -> list[Document]:

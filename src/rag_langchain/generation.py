@@ -1,5 +1,5 @@
-"""Answer a question: retrieve → rerank → answer with numbered citations and chat history.
-(walkthrough steps 12, 13, 19)"""
+"""Answer a question: rewrite follow-ups → retrieve → rerank → answer with numbered citations and chat history.
+(walkthrough steps 12, 13, 19, 20)"""
 
 from functools import cache
 from operator import itemgetter
@@ -12,7 +12,7 @@ from langchain_core.runnables import Runnable, RunnableLambda, RunnablePassthrou
 from rag_langchain.llm import chat_model
 from rag_langchain.prompts import ANSWER_PROMPT
 from rag_langchain.reranking import rerank
-from rag_langchain.retrieval import retrieve
+from rag_langchain.retrieval import retrieve, standalone_question
 
 
 def format_docs(documents: list[Document]) -> str:
@@ -25,13 +25,14 @@ def format_docs(documents: list[Document]) -> str:
 @cache
 def rag_chain() -> Runnable:
     return (
-        RunnablePassthrough.assign(candidates=itemgetter("question") | RunnableLambda(retrieve))  # + candidates
-        .assign(documents=lambda inputs: rerank(inputs["question"], inputs["candidates"]))  # + documents (top N)
+        RunnablePassthrough.assign(search_question=standalone_question)  # + search_question
+        .assign(candidates=itemgetter("search_question") | RunnableLambda(retrieve))  # + candidates
+        .assign(documents=lambda inputs: rerank(inputs["search_question"], inputs["candidates"]))  # + documents (top N)
         .assign(context=lambda inputs: format_docs(inputs["documents"]))  # + context
         .assign(answer=ANSWER_PROMPT | chat_model() | StrOutputParser())  # + answer
     )
 
 
 def answer(question: str, history: list[BaseMessage] | None = None) -> dict:
-    """Returns {"question", "history", "candidates", "documents", "context", "answer"}."""
+    """Returns {"question", "history", "search_question", "candidates", "documents", "context", "answer"}."""
     return rag_chain().invoke({"question": question, "history": history or []})

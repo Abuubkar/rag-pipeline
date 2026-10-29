@@ -19,13 +19,13 @@ The names follow the RAG stages in order: loaders → ingestion → vectorstore 
 | [`config.py`](config.py) | Settings from environment variables (`RAG_DATABASE_URL`, `RAG_CHAT_MODEL`, …) | — |
 | [`llm.py`](llm.py) | The chat model (gemma4 via Ollama) | 1 |
 | [`embeddings.py`](embeddings.py) | nomic-embed-text with its `search_document:` / `search_query:` prefixes | 8, 9 |
-| [`prompts.py`](prompts.py) | All three prompts: plan, grade, answer | 2, 13, 17, 18, 19 |
+| [`prompts.py`](prompts.py) | All four prompts: rewrite, plan, grade, answer | 2, 13, 17, 18, 19, 20 |
 | [`loaders.py`](loaders.py) | The dataset as LangChain Documents | 6 |
 | [`vectorstore.py`](vectorstore.py) | The Postgres vector store, and the list of publication names | 10 |
 | [`ingestion.py`](ingestion.py) | Load → split → embed only the chunks not stored yet | 7, 10 |
-| [`retrieval.py`](retrieval.py) | Plan (query, publication) searches → filtered vector search → dedupe | 16, 18 |
+| [`retrieval.py`](retrieval.py) | Rewrite follow-ups with the history; plan (query, publication) searches → filtered vector search → dedupe | 16, 18, 20 |
 | [`reranking.py`](reranking.py) | The LLM scores each candidate 0–10, seeing the full question and the search that found it; keep the best of every search, then the top scores up to 5 | 17 |
-| [`generation.py`](generation.py) | The full chain: retrieve → rerank → answer with citations and history | 12, 13, 19 |
+| [`generation.py`](generation.py) | The full chain: rewrite → retrieve → rerank → answer with citations and history | 12, 13, 19, 20 |
 
 ## Who imports whom
 
@@ -86,17 +86,21 @@ sequenceDiagram
     User->>cli: rag ask "question"
     cli->>gen: answer(question, history)
 
-    gen->>ret: retrieve(question)
+    gen->>ret: standalone_question(question, history)
+    ret->>llm: REWRITE_PROMPT, only when there is history ("him" → "Sam Bankman-Fried")
+    ret-->>gen: search_question
+
+    gen->>ret: retrieve(search_question)
     ret->>llm: PLAN_PROMPT → [(query, source), …]
     ret->>pg: one similarity_search per plan,<br/>filter={"source": …} when set,<br/>plus the original question
     pg-->>ret: 5 chunks per search
     ret-->>gen: candidates: chunks, each tagged with metadata["query"]
 
-    gen->>rr: rerank(question, candidates)
+    gen->>rr: rerank(search_question, candidates)
     rr->>llm: GRADE_PROMPT per chunk: question + its search query (in parallel) → score 0–10
     rr-->>gen: best chunk of every search + top scores (score > 0)
 
-    gen->>llm: ANSWER_PROMPT: numbered excerpts + history + question
+    gen->>llm: ANSWER_PROMPT: numbered excerpts + history + original question
     llm-->>gen: answer with [n] citations
     gen-->>cli: {answer, documents, …}
     cli-->>User: answer + sources
@@ -111,6 +115,7 @@ sequenceDiagram
 | After | Dict keys |
 |---|---|
 | input | `question`, `history` |
+| `.assign(search_question=…)` | + `search_question`: the question rewritten to stand alone (the same question on the first turn) |
 | `.assign(candidates=…)` | + `candidates`: chunks from every search, deduplicated, each with `metadata["query"]` = the search that found it (often 10–25 chunks) |
 | `.assign(documents=…)` | + `documents`: the best chunk of every search, then the highest scores up to 5 |
 | `.assign(context=…)` | + `context`: the documents as numbered text |
@@ -118,8 +123,8 @@ sequenceDiagram
 
 ## Known limits
 
-- Slow: one LLM call to plan, one per candidate to rerank, one to answer (about 2–3 minutes per question
+- Slow: one LLM call to rewrite a follow-up, one to plan, one per candidate to rerank, one to answer (about 2–3 minutes per question
   on an M1 Pro).
-- Follow-ups like "what about **him**?" search the literal words; rewriting them with the history is
-  walkthrough step 20.
+- Questions about the conversation itself ("what was my first question?") still trigger a search; deciding
+  whether to search at all is routing (walkthrough step 22).
 - Chat history lives only in memory while `rag chat` runs.
