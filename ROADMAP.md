@@ -60,7 +60,7 @@ uv run rag chat                # follow-up questions in one conversation
 | 19 | Chat history | Passing previous turns to the model | `MessagesPlaceholder` + a plain list (`InMemoryChatMessageHistory` is deprecated) | — | ✅ |
 | 20 | Follow-up questions | Rewriting "what about him?" into a full question | An LLM rewrite step before retrieval, built with LCEL (the old `create_history_aware_retriever` is in legacy `langchain-classic`) | — | ✅ |
 | 21 | Saved history | Keeping chats across restarts | Our own `chat_messages` table: one row per message, `messages_to_dict` / `messages_from_dict` (not the deprecated `PostgresChatMessageHistory`) | — | ✅ |
-| 21b | Saved history, the v1 way | The same, with LangGraph | A LangGraph checkpointer (`PostgresSaver`) per `thread_id` | `langgraph`, `langgraph-checkpoint-postgres` | ⬜ |
+| 21b | Saved history, the v1 way | The same, with LangGraph | A LangGraph checkpointer (`PostgresSaver`) per `thread_id` | `langgraph`, `langgraph-checkpoint-postgres` | ✅ |
 
 ## Part E: Safety and quality
 
