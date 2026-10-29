@@ -17,5 +17,10 @@ class Settings:
     k_per_search: int = 5  # chunks fetched by each planned search
     top_n: int = 5  # chunks kept after reranking
 
+    @property
+    def checkpoint_url(self) -> str:
+        """The same database in psycopg's URL format (no SQLAlchemy "+psycopg" part), for LangGraph's PostgresSaver."""
+        return self.database_url.replace("postgresql+psycopg://", "postgresql://")
+
 
 settings = Settings()
