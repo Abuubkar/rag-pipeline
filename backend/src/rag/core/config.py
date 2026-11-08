@@ -67,6 +67,10 @@ class PromptsConfig(BaseModel):
     answer: str = "answer"
 
 
+class EvaluationConfig(BaseModel):
+    dev_fraction: float = 0.2  # share of each question type that goes to dev; the rest is test
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         yaml_file=CONFIG_DIR / "settings.yaml",
@@ -85,6 +89,7 @@ class Settings(BaseSettings):
     retrieval: RetrievalConfig
     index: IndexConfig
     prompts: PromptsConfig
+    evaluation: EvaluationConfig
 
     @classmethod
     def settings_customise_sources(

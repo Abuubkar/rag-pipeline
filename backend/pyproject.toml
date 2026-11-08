@@ -34,7 +34,7 @@ include_external_packages = true
 name = "Vendor AI libraries are only imported inside rag.packages"
 type = "forbidden"
 source_modules = [
-    "rag.pipeline", "rag.container", "rag.ingestion", "rag.retrieval", "rag.generation",
+    "rag.pipeline", "rag.container", "rag.ingestion", "rag.retrieval", "rag.generation", "rag.evaluation",
     "rag.observability", "rag.db", "rag.domain", "rag.core",
 ]
 forbidden_modules = [
@@ -49,7 +49,7 @@ type = "layers"
 layers = [
     "rag.pipeline",
     "rag.container",
-    "rag.ingestion | rag.retrieval | rag.generation",
+    "rag.ingestion | rag.retrieval | rag.generation | rag.evaluation",
     "rag.observability",
     "rag.packages",
     "rag.db",

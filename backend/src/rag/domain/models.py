@@ -123,3 +123,17 @@ class Answer(BaseModel):
     version_id: str
     prompt: str  # name@version
     model: str
+
+
+# ── Evaluation ───────────────────────────────────────────────────────
+class GoldenItem(BaseModel):
+    """One evaluation question with its reference answer and the articles that hold the evidence."""
+
+    id: str
+    question: str
+    answer: str
+    question_type: str  # inference_query | comparison_query | temporal_query | null_query
+    evidence_document_ids: list[str]  # gold articles (empty for null queries)
+    evidence_facts: list[str]  # the exact sentences the answer relies on
+    answerable: bool  # False for null queries: the right answer is "Insufficient information."
+    split: str = ""  # dev | test, set by evaluation.dataset

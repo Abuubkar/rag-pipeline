@@ -1,6 +1,6 @@
 """MultiHop-RAG corpus via Hugging Face `datasets` (yixuantt/MultiHopRAG, ODC-BY).
 
-609 news articles (Sep–Dec 2023). Questions are loaded in Milestone 2.
+609 news articles (Sep–Dec 2023) and 2,556 questions with gold evidence.
 """
 
 import hashlib
@@ -8,7 +8,7 @@ from datetime import datetime
 
 from datasets import load_dataset
 
-from rag.domain.models import Document
+from rag.domain.models import Document, GoldenItem
 
 
 def _doc_id(title: str) -> str:
@@ -49,3 +49,23 @@ def load_corpus(name: str, revision: str) -> list[Document]:
 
 def document_id_for_title(title: str) -> str:
     return _doc_id(title)
+
+
+def load_questions(name: str, revision: str) -> list[GoldenItem]:
+    rows = load_dataset(name, "MultiHopRAG", split="train", revision=revision)
+    items = []
+    for row in rows:
+        evidence = row["evidence_list"]
+        items.append(
+            GoldenItem(
+                id="q-" + hashlib.sha256(row["query"].encode()).hexdigest()[:16],
+                question=row["query"],
+                answer=row["answer"],
+                question_type=row["question_type"],
+                # One article can back several facts, so keep each id once, in order.
+                evidence_document_ids=list(dict.fromkeys(_doc_id(e["title"]) for e in evidence)),
+                evidence_facts=[e["fact"] for e in evidence],
+                answerable=row["question_type"] != "null_query",
+            )
+        )
+    return items

@@ -5,6 +5,7 @@
     uv run main.py ask "your question"        # answer with citations
     uv run main.py index list                 # see index versions
     uv run main.py index activate <id>        # point `ask` at a version
+    uv run main.py eval dataset               # golden set: questions per type and split
 """
 
 import subprocess
@@ -32,6 +33,8 @@ from rag.observability import tracing  # noqa: E402
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 index_app = typer.Typer(no_args_is_help=True, help="Manage index versions.")
 app.add_typer(index_app, name="index")
+eval_app = typer.Typer(no_args_is_help=True, help="Evaluate the pipeline on the golden set.")
+app.add_typer(eval_app, name="eval")
 console = Console()
 
 
@@ -119,6 +122,25 @@ def index_activate(version_id: str) -> None:
             raise RagError(f"Version '{version_id}' does not exist or is not ready.")
         index_registry.set_active(s, c.settings.index.alias, version_id)
     console.print(f"Active index '{c.settings.index.alias}' → {version_id}")
+
+
+@eval_app.command("dataset")
+def eval_dataset() -> None:
+    """Show the golden set: how many questions of each type are in dev and test."""
+    items = pipeline.golden_set(Container())
+    table = Table(title=f"Golden set ({len(items)} questions)")
+    for col in ("question type", "dev", "test", "avg evidence articles", "example answer"):
+        table.add_column(col)
+    for qtype in sorted({i.question_type for i in items}):
+        group = [i for i in items if i.question_type == qtype]
+        table.add_row(
+            qtype,
+            str(sum(i.split == "dev" for i in group)),
+            str(sum(i.split == "test" for i in group)),
+            f"{sum(len(i.evidence_document_ids) for i in group) / len(group):.1f}",
+            group[0].answer[:40],
+        )
+    console.print(table)
 
 
 def main() -> None:

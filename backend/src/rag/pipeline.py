@@ -3,6 +3,7 @@
 Workflow 1  ingest()               documents → clean → chunk → embed → versioned index
 Workflow 2  build_answer_graph()   question → search → context → generate → citations
             answer()               runs the graph for one question
+Workflow 3  golden_set()           evaluation questions with known answers, split dev / test
 
 Folders hold the *capabilities* (ingestion/, retrieval/, generation/ …);
 this file decides the *order* they run in.
@@ -13,8 +14,9 @@ import time
 from rag.container import Container
 from rag.db import index_registry
 from rag.db.session import session_scope
-from rag.domain.models import Answer, IndexVersion, IngestionReport
+from rag.domain.models import Answer, GoldenItem, IndexVersion, IngestionReport
 from rag.domain.state import AnswerState
+from rag.evaluation import dataset
 from rag.generation import citations, context, generate
 from rag.generation.prompts import load_prompt
 from rag.ingestion import chunking, cleaning, indexing, loader
@@ -102,3 +104,10 @@ def answer(c: Container, question: str) -> tuple[Answer, str | None]:
         trace_url = tracing.current_trace_url()
     tracing.flush()
     return result, trace_url
+
+
+# ══ WORKFLOW 3: EVALUATE ══════════════════════════════════════════════
+def golden_set(c: Container, split: str | None = None) -> list[GoldenItem]:
+    cfg = c.settings
+    items = dataset.load_golden_set(cfg.dataset.name, cfg.dataset.revision, cfg.evaluation.dev_fraction)
+    return [i for i in items if split is None or i.split == split]

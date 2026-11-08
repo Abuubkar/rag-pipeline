@@ -39,3 +39,6 @@ index:
 
 prompts:
   answer: answer         # config/prompts/answer.yaml
+
+evaluation:
+  dev_fraction: 0.2      # dev = iterate on this; test = only for final numbers
