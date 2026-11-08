@@ -6,6 +6,7 @@
     uv run main.py index list                 # see index versions
     uv run main.py index activate <id>        # point `ask` at a version
     uv run main.py eval dataset               # golden set: questions per type and split
+    uv run main.py eval retrieval [--split dev] # hit@k, recall@k, MRR, fact recall
 """
 
 import subprocess
@@ -140,6 +141,29 @@ def eval_dataset() -> None:
             f"{sum(len(i.evidence_document_ids) for i in group) / len(group):.1f}",
             group[0].answer[:40],
         )
+    console.print(table)
+
+
+@eval_app.command("retrieval")
+def eval_retrieval(
+    split: str = typer.Option("dev", help="dev (for tuning) or test (final numbers only)."),
+    limit: int = typer.Option(None, help="Only the first N questions (quick check)."),
+) -> None:
+    """Score search: does it bring back the gold articles and evidence sentences?"""
+    c = Container()
+    with Progress("[progress.description]{task.description}", BarColumn(),
+                  MofNCompleteColumn(), TimeElapsedColumn(), console=console) as progress:
+        task = progress.add_task("Searching", total=None)
+        report = pipeline.evaluate_retrieval(
+            c, split, limit, on_progress=lambda done, total: progress.update(task, completed=done, total=total)
+        )
+    table = Table(title=f"Retrieval on {split} · index {c.active_index().id} · fact recall @ top {c.settings.retrieval.top_k}")
+    table.add_column("metric")
+    for qtype in report:
+        table.add_column(qtype.removesuffix("_query"), justify="right", style="bold" if qtype == "all" else None)
+    for metric in report["all"]:
+        fmt = (lambda v: str(v)) if metric == "questions" else (lambda v: f"{v:.2f}")
+        table.add_row(metric, *(fmt(summary[metric]) for summary in report.values()))
     console.print(table)
 
 

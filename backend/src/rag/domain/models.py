@@ -137,3 +137,14 @@ class GoldenItem(BaseModel):
     evidence_facts: list[str]  # the exact sentences the answer relies on
     answerable: bool  # False for null queries: the right answer is "Insufficient information."
     split: str = ""  # dev | test, set by evaluation.dataset
+
+
+class RetrievalScore(BaseModel):
+    """How well retrieval did on one golden question. Keys of the dicts are k (top-k chunks)."""
+
+    item_id: str
+    question_type: str
+    hit: dict[int, bool]  # at least one gold article in the top k
+    recall: dict[int, float]  # share of gold articles in the top k
+    reciprocal_rank: float  # 1 / rank of the first chunk from a gold article (0 if none)
+    fact_recall: float  # share of evidence sentences found word-for-word in the top-k chunks

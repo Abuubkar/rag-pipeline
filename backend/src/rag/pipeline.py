@@ -4,6 +4,7 @@ Workflow 1  ingest()               documents → clean → chunk → embed → v
 Workflow 2  build_answer_graph()   question → search → context → generate → citations
             answer()               runs the graph for one question
 Workflow 3  golden_set()           evaluation questions with known answers, split dev / test
+            evaluate_retrieval()   score search against the gold articles
 
 Folders hold the *capabilities* (ingestion/, retrieval/, generation/ …);
 this file decides the *order* they run in.
@@ -16,7 +17,7 @@ from rag.db import index_registry
 from rag.db.session import session_scope
 from rag.domain.models import Answer, GoldenItem, IndexVersion, IngestionReport
 from rag.domain.state import AnswerState
-from rag.evaluation import dataset
+from rag.evaluation import dataset, experiments
 from rag.generation import citations, context, generate
 from rag.generation.prompts import load_prompt
 from rag.ingestion import chunking, cleaning, indexing, loader
@@ -111,3 +112,25 @@ def golden_set(c: Container, split: str | None = None) -> list[GoldenItem]:
     cfg = c.settings
     items = dataset.load_golden_set(cfg.dataset.name, cfg.dataset.revision, cfg.evaluation.dev_fraction)
     return [i for i in items if split is None or i.split == split]
+
+
+def evaluate_retrieval(
+    c: Container, split: str = "dev", limit: int | None = None, on_progress=None
+) -> dict[str, dict[str, float]]:
+    version = c.active_index()
+    embedder = c.query_embedder(version)
+    items = golden_set(c, split)[:limit]
+
+    def search_fn(question: str, k: int):
+        return search.dense_search(
+            question, db_url=c.db_url, version_id=version.id, embedder=embedder, top_k=k
+        )
+
+    ks = sorted({1, 3, c.settings.retrieval.top_k, 10})
+    with tracing.trace("evaluate-retrieval", input={"split": split, "limit": limit},
+                       tags=["eval"], metadata={"index_version": version.id}):
+        _, report = experiments.run_retrieval_eval(
+            items, search_fn, ks, fact_k=c.settings.retrieval.top_k, on_progress=on_progress
+        )
+    tracing.flush()
+    return report
