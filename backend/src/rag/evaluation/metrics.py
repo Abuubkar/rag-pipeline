@@ -1,4 +1,6 @@
-"""Retrieval metrics: did search bring back the articles (and sentences) the answer needs?
+"""Evaluation metrics.
+
+RETRIEVAL — did search bring back the articles (and sentences) the answer needs?
 
 All of them look at the ranked list of chunks that search returned:
 
@@ -11,12 +13,23 @@ MRR            1 / rank of the first chunk from a gold article, averaged over qu
 fact recall    evidence sentences that appear in the top k chunks ÷ all evidence sentences.
                Stricter than recall: the right article isn't enough if the chunk that was
                retrieved doesn't contain the sentence the answer relies on.
+
+ANSWERS — is the generated answer right? MultiHop-RAG's reference answers are short ("Yes",
+"Sam Bankman-Fried", "Insufficient information."), and the prompt asks the model to start with
+the direct answer, so only the FIRST SENTENCE is compared (citations and punctuation removed):
+
+exact match    first sentence == reference. Strict: "Yes, it did." fails for "Yes".
+correct        reference appears as whole words in the first sentence. This is the main
+               accuracy number. For null queries, correct means the model refused.
+refused        the model said "Insufficient information." On answerable questions that's a
+               false refusal; on null queries it's the right behaviour.
+cited          at least one valid [n] citation in the answer.
 """
 
 import re
 import unicodedata
 
-from rag.domain.models import GoldenItem, RetrievalScore, ScoredChunk
+from rag.domain.models import Answer, AnswerScore, GoldenItem, RetrievalScore, ScoredChunk
 
 
 def _normalize(text: str) -> str:
@@ -55,3 +68,53 @@ def summarize(scores: list[RetrievalScore], ks: list[int]) -> dict[str, float]:
     summary["mrr"] = sum(s.reciprocal_rank for s in scores) / n
     summary["fact_recall"] = sum(s.fact_recall for s in scores) / n
     return summary
+
+
+# ── Answers ──────────────────────────────────────────────────────────
+REFUSAL = "insufficient information"
+_CITATION = re.compile(r"\[\d+(?:\s*,\s*\d+)*\]")
+_ARTICLES = re.compile(r"\b(the|a|an)\b")
+
+
+def _normalize_answer(text: str) -> str:
+    """Lowercase, drop citations, punctuation and articles: "The Federal Reserve [2]." → "federal reserve"."""
+    text = _CITATION.sub(" ", _normalize(text))
+    text = re.sub(r"[^\w\s]", " ", text)
+    return " ".join(_ARTICLES.sub(" ", text).split())
+
+
+def _first_sentence(text: str) -> str:
+    return re.split(r"(?<=[.!?])\s+|\n", text.strip(), maxsplit=1)[0]
+
+
+def score_answer(item: GoldenItem, answer: Answer) -> AnswerScore:
+    lead = _normalize_answer(_first_sentence(answer.text))
+    reference = _normalize_answer(item.answer)
+    refused = REFUSAL in _normalize_answer(answer.text)
+    if item.answerable:
+        correct = not refused and re.search(rf"\b{re.escape(reference)}\b", lead) is not None
+    else:
+        correct = refused
+    return AnswerScore(
+        item_id=item.id,
+        question_type=item.question_type,
+        answer=answer.text,
+        reference=item.answer,
+        exact_match=lead == reference,
+        correct=correct,
+        refused=refused,
+        cited=bool(answer.citations),
+        invalid_citations=len(answer.invalid_citations),
+    )
+
+
+def summarize_answers(scores: list[AnswerScore]) -> dict[str, float]:
+    n = len(scores)
+    return {
+        "questions": n,
+        "accuracy": sum(s.correct for s in scores) / n,
+        "exact_match": sum(s.exact_match for s in scores) / n,
+        "refusal_rate": sum(s.refused for s in scores) / n,
+        "cited": sum(s.cited for s in scores) / n,
+        "invalid_citations": sum(s.invalid_citations for s in scores) / n,
+    }

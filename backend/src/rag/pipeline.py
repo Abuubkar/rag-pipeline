@@ -5,6 +5,9 @@ Workflow 2  build_answer_graph()   question → search → context → generate 
             answer()               runs the graph for one question
 Workflow 3  golden_set()           evaluation questions with known answers, split dev / test
             evaluate_retrieval()   score search against the gold articles
+            evaluate_answers()     score generated answers against the reference answers
+                                   (retrieval=False: no-retrieval baseline)
+            eval_runs() / eval_run()   saved runs, to compare setups over time
 
 Folders hold the *capabilities* (ingestion/, retrieval/, generation/ …);
 this file decides the *order* they run in.
@@ -15,9 +18,9 @@ import time
 from rag.container import Container
 from rag.db import index_registry
 from rag.db.session import session_scope
-from rag.domain.models import Answer, GoldenItem, IndexVersion, IngestionReport
+from rag.domain.models import Answer, EvalRun, GoldenItem, IndexVersion, IngestionReport
 from rag.domain.state import AnswerState
-from rag.evaluation import dataset, experiments
+from rag.evaluation import dataset, experiments, runs
 from rag.generation import citations, context, generate
 from rag.generation.prompts import load_prompt
 from rag.ingestion import chunking, cleaning, indexing, loader
@@ -90,21 +93,25 @@ def answer(c: Container, question: str) -> tuple[Answer, str | None]:
                        metadata={"index_version": version.id}):
         callbacks = tracing.langchain_callbacks()
         graph = build_answer_graph(c, version, callbacks)
-        state = graphs.invoke(graph, {"question": question}, callbacks, run_name="answer-graph")
-        result = Answer(
-            question=question,
-            text=state["completion"].text,
-            citations=state["citations"],
-            invalid_citations=state["invalid_citations"],
-            sources=state["chunks"],
-            version_id=version.id,
-            prompt=state["prompt"],
-            model=state["completion"].model,
-        )
+        result = _run_answer_graph(graph, question, version, callbacks)
         tracing.annotate(output=result.text)
         trace_url = tracing.current_trace_url()
     tracing.flush()
     return result, trace_url
+
+
+def _run_answer_graph(graph, question: str, version: IndexVersion, callbacks: list) -> Answer:
+    state = graphs.invoke(graph, {"question": question}, callbacks, run_name="answer-graph")
+    return Answer(
+        question=question,
+        text=state["completion"].text,
+        citations=state["citations"],
+        invalid_citations=state["invalid_citations"],
+        sources=state["chunks"],
+        version_id=version.id,
+        prompt=state["prompt"],
+        model=state["completion"].model,
+    )
 
 
 # ══ WORKFLOW 3: EVALUATE ══════════════════════════════════════════════
@@ -116,10 +123,10 @@ def golden_set(c: Container, split: str | None = None) -> list[GoldenItem]:
 
 def evaluate_retrieval(
     c: Container, split: str = "dev", limit: int | None = None, on_progress=None
-) -> dict[str, dict[str, float]]:
+) -> EvalRun:
     version = c.active_index()
     embedder = c.query_embedder(version)
-    items = golden_set(c, split)[:limit]
+    items = dataset.sample(golden_set(c, split), limit)
 
     def search_fn(question: str, k: int):
         return search.dense_search(
@@ -127,10 +134,60 @@ def evaluate_retrieval(
         )
 
     ks = sorted({1, 3, c.settings.retrieval.top_k, 10})
+    run = runs.start(c.db_url, c.settings, "retrieval", "dense", split, limit, version.id,
+                     extra={"ks": ks, "embedder": embedder.info().model_dump()})
     with tracing.trace("evaluate-retrieval", input={"split": split, "limit": limit},
-                       tags=["eval"], metadata={"index_version": version.id}):
-        _, report = experiments.run_retrieval_eval(
-            items, search_fn, ks, fact_k=c.settings.retrieval.top_k, on_progress=on_progress
-        )
+                       tags=["eval"], metadata={"index_version": version.id, "eval_run": run.id}):
+        with runs.recorded(c.db_url, run.id) as save:
+            save(*experiments.run_retrieval_eval(
+                items, search_fn, ks, fact_k=c.settings.retrieval.top_k, on_progress=on_progress
+            ))
     tracing.flush()
-    return report
+    return runs.get(c.db_url, run.id)
+
+
+def evaluate_answers(
+    c: Container, split: str = "dev", limit: int | None = None,
+    retrieval: bool = True, on_progress=None,
+) -> EvalRun:
+    """retrieval=False is the no-retrieval baseline: the same LLM answers with no sources.
+    If it scores close to RAG, the model already knew the answers and RAG adds little."""
+    version = c.active_index()
+    items = dataset.sample(golden_set(c, split), limit)
+    mode = "rag" if retrieval else "closed_book"
+    prompt = c.settings.prompts.answer if retrieval else c.settings.prompts.closed_book
+    run = runs.start(c.db_url, c.settings, "answers", mode, split, limit, version.id,
+                     extra={"prompt": load_prompt(prompt).label})
+    with tracing.trace(f"evaluate-answers-{mode}", input={"split": split, "limit": limit},
+                       tags=["eval", mode], metadata={"index_version": version.id, "eval_run": run.id}):
+        callbacks = tracing.langchain_callbacks()
+        if retrieval:
+            graph = build_answer_graph(c, version, callbacks)   # built once, run per question
+            answer_fn = lambda q: _run_answer_graph(graph, q, version, callbacks)  # noqa: E731
+        else:
+            answer_fn = _closed_book_answerer(c, version, callbacks)
+        with runs.recorded(c.db_url, run.id) as save:
+            save(*experiments.run_answer_eval(items, answer_fn, on_progress))
+    tracing.flush()
+    return runs.get(c.db_url, run.id)
+
+
+def _closed_book_answerer(c: Container, version: IndexVersion, callbacks: list):
+    prompt = load_prompt(c.settings.prompts.closed_book)
+    chat = c.generator(callbacks)
+
+    def answer_fn(question: str) -> Answer:
+        completion = generate.closed_book(chat=chat, prompt=prompt, question=question)
+        return Answer(question=question, text=completion.text, citations=[], invalid_citations=[],
+                      sources=[], version_id=version.id, prompt=prompt.label, model=completion.model)
+
+    return answer_fn
+
+
+
+def eval_runs(c: Container, limit: int = 20) -> list[EvalRun]:
+    return runs.recent(c.db_url, limit)
+
+
+def eval_run(c: Container, run_id: str) -> EvalRun:
+    return runs.get(c.db_url, run_id)

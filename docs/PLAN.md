@@ -89,7 +89,7 @@ rag-pipeline/
 │   │   ├── retrieval/              search · reranking · grading · compression  (search in M1)
 │   │   ├── generation/             context · generate · citations · delivery
 │   │   ├── guardrails/             input · output · tools                      (M4)
-│   │   ├── evaluation/             dataset · metrics · experiments · reports   (M2)
+│   │   ├── evaluation/             dataset · metrics · experiments · runs      (M2)
 │   │   ├── agents/                 tool_loop · agent · tools/                  (M6)
 │   │   ├── observability/          tracing.py
 │   │   ├── packages/
@@ -102,11 +102,11 @@ rag-pipeline/
 │   │   │   ├── tracing/            langfuse.py · langsmith.py
 │   │   │   ├── judging/            ragas.py                     (M4)
 │   │   │   └── pii/                presidio.py                  (M4)
-│   │   ├── db/                     models.py · session.py · migrations/
+│   │   ├── db/                     models.py · session.py · index_registry · eval_registry · migrations/
 │   │   ├── api/                    app.py · sse.py · routes/    (M5)
 │   │   ├── container.py            # composition root
 │   │   ├── domain/                 models.py · state.py · errors.py (· events.py in M5)
-│   │   └── core/                   config.py · logging.py
+│   │   └── core/                   config.py · logging.py · provenance.py
 │   └── tests/                      # AI behaviour only
 └── web/                            # React + Vite+ + TS + StyleX (M5)
 ```
@@ -131,7 +131,8 @@ rag-pipeline/
 | `active_index` | alias → index_version_id |
 | `chunks` | id (deterministic hash), version_id, document_id, ordinal, text, generated `tsv`, `embedding vector(768)`, metadata jsonb |
 | `conversations`, `messages`, `feedback` | App state (M5) |
-| `eval_runs`, `eval_results`, `judge_cache` | Evaluation (M2/M4) |
+| `eval_runs`, `eval_results` | Evaluation runs (M2): config snapshot + hash, index version, git commit, summary per question type; one row per question with its scores |
+| `judge_cache` | LLM-judge results (M4) |
 | LangGraph checkpoint tables | Conversation memory (`PostgresSaver`) |
 
 **Index versioning.** The manifest records the dataset revision and content hash, the

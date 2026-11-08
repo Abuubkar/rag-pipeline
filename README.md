@@ -22,6 +22,12 @@ uv run main.py db-upgrade                 # create the schema
 uv run main.py ingest                     # ~6 min: 609 articles → ~3.4k chunks
 uv run main.py ask "Who is the individual in the crypto industry facing a fraud trial?"
 uv run main.py index list
+uv run main.py db-upgrade                 # again after pulling: adds eval tables
+uv run main.py eval dataset               # golden set: dev/test per question type
+uv run main.py eval retrieval             # ~30 s: hit@k, recall@k, MRR, fact recall
+uv run main.py eval answers --limit 50    # LLM answers vs reference (slow: 1 call per question)
+uv run main.py eval answers --limit 50 --no-retrieval   # baseline: what the model already knows
+uv run main.py eval runs                  # saved runs with config hash + git commit
 uv run pytest                             # AI-behaviour tests
 uv run lint-imports                       # architecture rules
 ```

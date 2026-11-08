@@ -65,6 +65,7 @@ class IndexConfig(BaseModel):
 
 class PromptsConfig(BaseModel):
     answer: str = "answer"
+    closed_book: str = "closed_book"
 
 
 class EvaluationConfig(BaseModel):

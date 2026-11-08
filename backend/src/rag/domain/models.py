@@ -148,3 +148,35 @@ class RetrievalScore(BaseModel):
     recall: dict[int, float]  # share of gold articles in the top k
     reciprocal_rank: float  # 1 / rank of the first chunk from a gold article (0 if none)
     fact_recall: float  # share of evidence sentences found word-for-word in the top-k chunks
+
+
+class AnswerScore(BaseModel):
+    """How the generated answer to one golden question compares with the reference answer."""
+
+    item_id: str
+    question_type: str
+    answer: str  # what the model said
+    reference: str  # the dataset's answer
+    exact_match: bool  # first sentence == reference (after normalising)
+    correct: bool  # reference found in the first sentence; for null queries: the model refused
+    refused: bool  # model said "Insufficient information."
+    cited: bool  # at least one valid [n] citation
+    invalid_citations: int
+
+
+class EvalRun(BaseModel):
+    """One evaluation run. Same config_hash + index + git commit should give the same numbers."""
+
+    id: str
+    kind: str  # retrieval | answers
+    mode: str  # dense | rag | closed_book
+    split: str
+    status: str  # running | done | failed
+    questions: int = 0
+    index_version_id: str
+    config_hash: str
+    config: dict[str, Any]
+    provenance: dict[str, Any]  # git_commit, git_dirty, prompt, model, model_digest, dataset_revision, limit
+    summary: dict[str, dict[str, int | float]] | None = None
+    created_at: datetime | None = None
+    finished_at: datetime | None = None

@@ -39,6 +39,7 @@ index:
 
 prompts:
   answer: answer         # config/prompts/answer.yaml
+  closed_book: closed_book  # no-retrieval baseline (eval only)
 
 evaluation:
   dev_fraction: 0.2      # dev = iterate on this; test = only for final numbers

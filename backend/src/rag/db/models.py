@@ -1,4 +1,5 @@
-"""Postgres schema (SQLAlchemy). One database holds documents, chunks + vectors and index versions.
+"""Postgres schema (SQLAlchemy). One database holds documents, chunks + vectors, index versions
+and evaluation runs.
 
 The embedding column is fixed at 768 dims (nomic-embed-text). A model with other dims needs
 a migration — see docs/adr/0004-index-versioning.md.
@@ -9,7 +10,7 @@ from typing import Any
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import Computed, DateTime, ForeignKey, Index, Integer, String, Text, func
-from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
+from sqlalchemy.dialects.postgresql import JSON, JSONB, TSVECTOR
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 EMBEDDING_DIMS = 768
@@ -81,3 +82,34 @@ class ChunkRow(Base):
         ),
         Index("ix_chunks_tsv", "tsv", postgresql_using="gin"),
     )
+
+
+class EvalRunRow(Base):
+    """One `main.py eval …` run, with everything needed to reproduce or compare it."""
+
+    __tablename__ = "eval_runs"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    kind: Mapped[str] = mapped_column(String)  # retrieval | answers
+    mode: Mapped[str] = mapped_column(String)  # dense | rag | closed_book
+    split: Mapped[str] = mapped_column(String)  # dev | test
+    status: Mapped[str] = mapped_column(String)  # running | done | failed
+    questions: Mapped[int] = mapped_column(Integer, default=0)
+    index_version_id: Mapped[str] = mapped_column(ForeignKey("index_versions.id"))
+    config_hash: Mapped[str] = mapped_column(String)
+    config: Mapped[dict[str, Any]] = mapped_column(JSONB)  # settings used (no secrets)
+    provenance: Mapped[dict[str, Any]] = mapped_column(JSONB)  # git commit, prompt, model, dataset…
+    summary: Mapped[dict[str, Any] | None] = mapped_column(JSON)  # report per question type (JSON keeps key order)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class EvalResultRow(Base):
+    """The score of one golden question in one run (lets you diff two runs question by question)."""
+
+    __tablename__ = "eval_results"
+
+    run_id: Mapped[str] = mapped_column(ForeignKey("eval_runs.id", ondelete="CASCADE"), primary_key=True)
+    item_id: Mapped[str] = mapped_column(String, primary_key=True)
+    question_type: Mapped[str] = mapped_column(String)
+    scores: Mapped[dict[str, Any]] = mapped_column(JSONB)

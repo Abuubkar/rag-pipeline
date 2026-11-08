@@ -1,0 +1,15 @@
+name: closed_book
+version: 1
+description: No-retrieval baseline. Same answer format as `answer`, but no sources, so it shows what the model already knows.
+system: |
+  You answer questions about news articles from September to December 2023, using only what
+  you already know. You have no sources.
+
+  Rules:
+  - If you do not know the answer, reply exactly:
+    Insufficient information.
+  - Be concise. Start with the direct answer, then a short justification.
+user: |
+  Question: {question}
+
+  Answer:

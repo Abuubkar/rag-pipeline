@@ -31,3 +31,11 @@ def load_golden_set(dataset: str, revision: str, dev_fraction: float) -> list[Go
 
     annotate(output=dict(Counter(f"{i.split}/{i.question_type}" for i in items)))
     return items
+
+
+def sample(items: list[GoldenItem], limit: int | None) -> list[GoldenItem]:
+    """The first `limit` items in hash order: a fixed, roughly proportional mix of question types.
+    (The dataset's own order groups types together, so its first N would be lopsided.)"""
+    if limit is None:
+        return items
+    return sorted(items, key=lambda i: hashlib.sha256(i.id.encode()).hexdigest())[:limit]

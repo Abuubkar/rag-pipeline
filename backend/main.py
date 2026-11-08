@@ -7,9 +7,14 @@
     uv run main.py index activate <id>        # point `ask` at a version
     uv run main.py eval dataset               # golden set: questions per type and split
     uv run main.py eval retrieval [--split dev] # hit@k, recall@k, MRR, fact recall
+    uv run main.py eval answers [--limit 50]  # accuracy, exact match, refusals, citations
+    uv run main.py eval answers --no-retrieval  # baseline: same LLM, no sources
+    uv run main.py eval runs                  # saved runs (Postgres), newest first
+    uv run main.py eval show <run-id>         # a saved run's report + provenance
 """
 
 import subprocess
+from contextlib import contextmanager
 import sys
 from pathlib import Path
 
@@ -151,13 +156,61 @@ def eval_retrieval(
 ) -> None:
     """Score search: does it bring back the gold articles and evidence sentences?"""
     c = Container()
-    with Progress("[progress.description]{task.description}", BarColumn(),
-                  MofNCompleteColumn(), TimeElapsedColumn(), console=console) as progress:
-        task = progress.add_task("Searching", total=None)
-        report = pipeline.evaluate_retrieval(
-            c, split, limit, on_progress=lambda done, total: progress.update(task, completed=done, total=total)
-        )
-    table = Table(title=f"Retrieval on {split} · index {c.active_index().id} · fact recall @ top {c.settings.retrieval.top_k}")
+    with _progress("Searching") as on_progress:
+        run = pipeline.evaluate_retrieval(c, split, limit, on_progress=on_progress)
+    _print_run(run)
+
+
+@eval_app.command("answers")
+def eval_answers(
+    split: str = typer.Option("dev", help="dev (for tuning) or test (final numbers only)."),
+    limit: int = typer.Option(None, help="Only the first N questions (each one is an LLM call)."),
+    retrieval: bool = typer.Option(True, help="--no-retrieval: baseline that answers without sources."),
+) -> None:
+    """Score generated answers against the reference answers (runs the full answer graph)."""
+    c = Container()
+    with _progress("Answering") as on_progress:
+        run = pipeline.evaluate_answers(c, split, limit, retrieval, on_progress=on_progress)
+    _print_run(run)
+
+
+@eval_app.command("runs")
+def eval_runs(limit: int = typer.Option(20, help="How many recent runs to show.")) -> None:
+    """List saved eval runs with their headline number."""
+    table = Table(title="Eval runs (newest first)")
+    for col in ("run", "status", "split", "n", "headline", "commit"):
+        table.add_column(col, no_wrap=col == "run")
+    for run in pipeline.eval_runs(Container(), limit):
+        headline = ""
+        if run.summary:
+            key = "recall@" + str(Container().settings.retrieval.top_k) if run.kind == "retrieval" else "accuracy"
+            headline = f"{key} {run.summary['all'][key]:.2f}"
+        commit = (run.provenance.get("git_commit") or "") + ("*" if run.provenance.get("git_dirty") else "")
+        table.add_row(run.id, run.status, run.split, str(run.questions), headline, commit)
+    console.print(table)
+    console.print("[dim]* = uncommitted changes when the run started · details: main.py eval show <run>[/dim]")
+
+
+@eval_app.command("show")
+def eval_show(run_id: str) -> None:
+    """Show a saved run's report and how it was produced."""
+    _print_run(pipeline.eval_run(Container(), run_id))
+
+
+def _print_run(run) -> None:
+    p = run.provenance
+    what = {"dense": "dense search", "rag": "RAG answers", "closed_book": "no-retrieval baseline"}[run.mode]
+    detail = f"fact recall @ top {run.config['retrieval']['top_k']}" if run.kind == "retrieval" else f"{p['model']} · {p['prompt']}"
+    _print_report(run.summary or {}, f"{what} on {run.split} · {detail}")
+    console.print(f"[dim]run {run.id} · status {run.status} · index {run.index_version_id} · config {run.config_hash} · "
+                  f"commit {p.get('git_commit')}{'*' if p.get('git_dirty') else ''}[/dim]")
+
+
+def _print_report(report: dict[str, dict[str, float]], title: str) -> None:
+    """Metrics as rows, question types as columns."""
+    if not report:
+        return
+    table = Table(title=title)
     table.add_column("metric")
     for qtype in report:
         table.add_column(qtype.removesuffix("_query"), justify="right", style="bold" if qtype == "all" else None)
@@ -165,6 +218,14 @@ def eval_retrieval(
         fmt = (lambda v: str(v)) if metric == "questions" else (lambda v: f"{v:.2f}")
         table.add_row(metric, *(fmt(summary[metric]) for summary in report.values()))
     console.print(table)
+
+
+@contextmanager
+def _progress(label: str):
+    with Progress("[progress.description]{task.description}", BarColumn(),
+                  MofNCompleteColumn(), TimeElapsedColumn(), console=console) as progress:
+        task = progress.add_task(label, total=None)
+        yield lambda done, total: progress.update(task, completed=done, total=total)
 
 
 def main() -> None:
