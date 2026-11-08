@@ -183,7 +183,7 @@ disagrees with it, the query is refused.
 | # | Scope | Done when |
 |---|---|---|
 | **1** | Postgres + pgvector + Alembic; MultiHop-RAG loader; LlamaIndex sentence chunking; Ollama embeddings with prefixes; index versioning; dense search; LangGraph answer graph (search → context → generate → citations); CLI `ingest` / `ask`; Langfuse tracing (optional if keys are missing) | `ingest` reaches `ready`; re-running is a no-op; `ask` returns a cited answer; a mismatched embedder is refused; the trace shows each node |
-| **2** | Golden set + dev/test split; retrieval + answer metrics; no-retrieval baseline; `eval_runs` | Reproducible `eval` with per-question-type breakdown |
+| **2** ✅ | Golden set + dev/test split; retrieval + answer metrics; no-retrieval baseline; `eval_runs` | Reproducible `eval` with per-question-type breakdown. Dev baseline: recall@6 0.56, RAG accuracy 0.53 vs 0.42 without retrieval (`docs/concepts/02-…`) |
 | **3** | Full-text search + RRF hybrid; 3 chunkers (LlamaIndex sentence, LlamaIndex semantic, LangChain recursive); query rewrite / multi-query / HyDE; listwise rerank; metadata filters; compression | Comparison report with paired confidence intervals |
 | **4** | Guardrails (input/output/PII); delivery modes; red-team set; RAGAS with Groq judge; prompt sync to Langfuse; LangSmith check | Red-team scores; buffered mode never sends unvalidated text |
 | **5** | FastAPI SSE + React (Vite+, StyleX): chat, citations, pipeline inspector, feedback | Live node timeline; feedback lands on the right trace |

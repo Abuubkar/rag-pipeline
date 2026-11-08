@@ -35,7 +35,8 @@ class OllamaEmbedder:
     def __init__(self, model: str, base_url: str):
         self.model = model
         self._lc = OllamaEmbeddings(model=model, base_url=base_url)
-        self._digest = _model_digest(ollama.Client(host=base_url), model)
+        self._client = ollama.Client(host=base_url)
+        self._digest = _model_digest(self._client, model)
         self._doc_prefix, self._query_prefix = _PREFIXES.get(model.split(":")[0], ("", ""))
         self._dims: int | None = None
 
@@ -58,3 +59,7 @@ class OllamaEmbedder:
             query_prefix=self._query_prefix,
             normalize=True,
         )
+
+    def unload(self) -> None:
+        """Free the model's memory now instead of after Ollama's 5-minute idle timeout."""
+        self._client.embed(model=self.model, input=[], keep_alive=0)

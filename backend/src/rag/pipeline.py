@@ -70,15 +70,19 @@ def ingest(
 
 
 # ══ WORKFLOW 2: ANSWER A QUESTION (LangGraph) ═════════════════════════
-def build_answer_graph(c: Container, version: IndexVersion, callbacks: list):
+def build_answer_graph(c: Container, version: IndexVersion, callbacks: list, with_search: bool = True):
+    """with_search=False starts at generation: the caller puts `chunks` in the input state
+    (evaluation retrieves everything first, so only one Ollama model is loaded at a time)."""
     prompt = load_prompt(c.settings.prompts.answer)
-    embedder = c.query_embedder(version)            # refuses a mismatched embedder
     chat = c.generator(callbacks)
 
-    nodes = [
-        ("retrieval.search", search.search_node(
+    nodes = []
+    if with_search:
+        embedder = c.query_embedder(version)        # refuses a mismatched embedder
+        nodes.append(("retrieval.search", search.search_node(
             db_url=c.db_url, version_id=version.id, embedder=embedder,
-            top_k=c.settings.retrieval.top_k)),
+            top_k=c.settings.retrieval.top_k)))
+    nodes += [
         ("generation.context",   context.context_node),
         ("generation.generate",  generate.generate_node(chat=chat, prompt=prompt)),
         ("generation.citations", citations.citations_node),
@@ -100,8 +104,10 @@ def answer(c: Container, question: str) -> tuple[Answer, str | None]:
     return result, trace_url
 
 
-def _run_answer_graph(graph, question: str, version: IndexVersion, callbacks: list) -> Answer:
-    state = graphs.invoke(graph, {"question": question}, callbacks, run_name="answer-graph")
+def _run_answer_graph(graph, question: str, version: IndexVersion, callbacks: list,
+                      chunks: list | None = None) -> Answer:
+    initial = {"question": question} if chunks is None else {"question": question, "chunks": chunks}
+    state = graphs.invoke(graph, initial, callbacks, run_name="answer-graph")
     return Answer(
         question=question,
         text=state["completion"].text,
@@ -162,8 +168,20 @@ def evaluate_answers(
                        tags=["eval", mode], metadata={"index_version": version.id, "eval_run": run.id}):
         callbacks = tracing.langchain_callbacks()
         if retrieval:
-            graph = build_answer_graph(c, version, callbacks)   # built once, run per question
-            answer_fn = lambda q: _run_answer_graph(graph, q, version, callbacks)  # noqa: E731
+            # Two phases, so only one Ollama model is in memory at a time:
+            # 1. retrieve for every question (embedding model), then unload it;
+            # 2. answer every question from those chunks (chat model only).
+            embedder = c.query_embedder(version)
+            retrieved = {}
+            for n, item in enumerate(items, start=1):
+                retrieved[item.question] = search.dense_search(
+                    item.question, db_url=c.db_url, version_id=version.id,
+                    embedder=embedder, top_k=c.settings.retrieval.top_k)
+                if on_progress:
+                    on_progress(n, len(items))
+            embedder.unload()
+            graph = build_answer_graph(c, version, callbacks, with_search=False)
+            answer_fn = lambda q: _run_answer_graph(graph, q, version, callbacks, retrieved[q])  # noqa: E731
         else:
             answer_fn = _closed_book_answerer(c, version, callbacks)
         with runs.recorded(c.db_url, run.id) as save:
