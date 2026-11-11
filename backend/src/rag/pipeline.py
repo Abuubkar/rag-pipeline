@@ -51,7 +51,7 @@ def ingest(
         if existing and existing.status == "ready":                                    # no-op
             newly, skipped, n_chunks = 0, existing.indexed_chunks, existing.indexed_chunks
         else:
-            chunks = chunking.chunk_documents(docs, cfg.chunking)                      # 3. chunk
+            chunks = chunking.chunk_documents(docs, cfg.chunking, c.embedder.embed_documents)  # 3. chunk
             newly, skipped = indexing.index_chunks(                                    # 4+5. embed + index
                 c.db_url, version_id, manifest, chunks, docs, c.embedder,
                 cfg.embeddings.batch_size, cfg.chunking.contextual_header, on_progress,

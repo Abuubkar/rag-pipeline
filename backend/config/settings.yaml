@@ -25,11 +25,12 @@ embeddings:
   batch_size: 32
 
 chunking:
-  library: llamaindex
+  library: llamaindex     # llamaindex (sentence | semantic) or langchain (recursive)
   splitter: sentence
   chunk_size: 512        # tokens
   chunk_overlap: 64      # tokens
   contextual_header: true  # prepend title/source/date before embedding
+  breakpoint_percentile: 95  # semantic only: cut where neighbour similarity falls below this percentile
 
 retrieval:
   mode: hybrid           # dense | keyword | hybrid (keyword = Postgres full-text search)

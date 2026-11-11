@@ -97,6 +97,7 @@ class ScoredChunk(BaseModel):
     source: str | None = None
     published_at: datetime | None = None
     url: str | None = None
+    token_count: int = 0
 
 
 class Citation(BaseModel):
@@ -148,6 +149,7 @@ class RetrievalScore(BaseModel):
     recall: dict[int, float]  # share of gold articles in the top k
     reciprocal_rank: float  # 1 / rank of the first chunk from a gold article (0 if none)
     fact_recall: float  # share of evidence sentences found word-for-word in the top-k chunks
+    context_tokens: int = 0  # tokens in those top-k chunks: what the LLM would have to read
 
 
 class AnswerScore(BaseModel):

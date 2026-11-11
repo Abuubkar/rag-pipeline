@@ -92,4 +92,5 @@ def _scored(chunk: ChunkRow, doc: DocumentRow, score: float) -> ScoredChunk:
         source=doc.source,
         published_at=doc.published_at,
         url=doc.url,
+        token_count=chunk.token_count,
     )

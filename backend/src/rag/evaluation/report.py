@@ -54,15 +54,19 @@ def _retrieval_section(runs: list[EvalRun], charts_dir: Path) -> str:
         "",
         "![Retrieval before and after](charts/retrieval.svg)",
         "",
-        f"| Experiment | recall@{k} | Δ | fact recall | Δ | MRR | Δ | hit@{k} | Δ | run | commit |",
-        "|---|--:|--:|--:|--:|--:|--:|--:|--:|---|---|",
+        f"| Experiment | recall@{k} | Δ | fact recall | Δ | MRR | Δ | hit@{k} | Δ | context tokens | run | commit |",
+        "|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|---|---|",
     ]
     for run, row in zip(runs, rows):
         cells = []
         for m in metrics:
             cells += [_fmt(row.get(m)), "—" if run is runs[0] else _delta(row.get(m), base.get(m))]
+        tokens = row.get("context_tokens")
+        cells.append("—" if tokens is None else f"{tokens:,}")
         lines.append(f"| {run.label} | " + " | ".join(cells) + f" | `{run.id}` | {_commit(run)} |")
-    lines += ["", f"**recall@{k} by question type**", "",
+    lines += ["", f"*Context tokens* = average tokens in the top {k} chunks, i.e. what the LLM reads. Compare "
+              "chunkers at a similar budget: more text can raise recall without better chunking.", "",
+              f"**recall@{k} by question type**", "",
               "| Experiment | " + " | ".join(_short(t) for t in QUESTION_TYPES[:3]) + " |",
               "|---|" + "--:|" * 3]
     for run in runs:

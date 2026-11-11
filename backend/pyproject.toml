@@ -11,6 +11,7 @@ dependencies = [
     "datasets>=5.1.0",
     "langchain-core>=1.6.11",
     "langchain-ollama>=1.1.0",
+    "langchain-text-splitters>=1.1.3",
     "langfuse>=5.0.1",
     "langgraph>=1.2.15",
     "llama-index-core>=0.14.25",
@@ -38,7 +39,7 @@ source_modules = [
     "rag.observability", "rag.db", "rag.domain", "rag.core",
 ]
 forbidden_modules = [
-    "langchain_core", "langchain_ollama", "langgraph", "llama_index", "langfuse",
+    "langchain_core", "langchain_ollama", "langchain_text_splitters", "langgraph", "llama_index", "langfuse",
     "datasets", "ollama",
 ]
 allow_indirect_imports = true  # going *through* rag.packages is the whole point

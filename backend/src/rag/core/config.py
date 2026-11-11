@@ -54,6 +54,7 @@ class ChunkingConfig(BaseModel):
     chunk_size: int
     chunk_overlap: int
     contextual_header: bool = True
+    breakpoint_percentile: int = 95  # semantic splitter: split where similarity drops below this percentile
 
 
 class RetrievalConfig(BaseModel):

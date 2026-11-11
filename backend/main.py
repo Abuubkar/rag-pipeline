@@ -235,7 +235,7 @@ def _print_report(report: dict[str, dict[str, float]], title: str) -> None:
     for qtype in report:
         table.add_column(qtype.removesuffix("_query"), justify="right", style="bold" if qtype == "all" else None)
     for metric in report["all"]:
-        fmt = (lambda v: str(v)) if metric == "questions" else (lambda v: f"{v:.2f}")
+        fmt = (lambda v: f"{v:,}") if isinstance(report["all"][metric], int) else (lambda v: f"{v:.2f}")
         table.add_row(metric, *(fmt(summary[metric]) for summary in report.values()))
     console.print(table)
 

@@ -55,6 +55,7 @@ def score_retrieval(
         recall={k: len(gold & set(ranked_docs[:k])) / len(gold) for k in ks},
         reciprocal_rank=1 / first_gold_rank if first_gold_rank else 0.0,
         fact_recall=facts_found / len(item.evidence_facts),
+        context_tokens=sum(c.token_count for c in chunks[:fact_k]),
     )
 
 
@@ -67,6 +68,7 @@ def summarize(scores: list[RetrievalScore], ks: list[int]) -> dict[str, float]:
         summary[f"recall@{k}"] = sum(s.recall[k] for s in scores) / n
     summary["mrr"] = sum(s.reciprocal_rank for s in scores) / n
     summary["fact_recall"] = sum(s.fact_recall for s in scores) / n
+    summary["context_tokens"] = round(sum(s.context_tokens for s in scores) / n)
     return summary
 
 
