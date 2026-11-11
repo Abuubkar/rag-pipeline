@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 908 198" width="908" height="198" font-family='system-ui, -apple-system, "Segoe UI", sans-serif' role="img" aria-label="Retrieval: before and after">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 908 258" width="908" height="258" font-family='system-ui, -apple-system, "Segoe UI", sans-serif' role="img" aria-label="Retrieval: before and after">
 <style>
   .surface { fill: #fcfcfb; }
   .title { fill: #0b0b0b; font-weight: 600; font-size: 14px; }
@@ -23,66 +23,84 @@
     .bar-run { fill: #3987e5; }
   }
 </style>
-<rect class="surface" width="908" height="198" rx="8"/>
+<rect class="surface" width="908" height="258" rx="8"/>
 <text class="title" x="16" y="26">Retrieval: before and after</text>
 <text class="subtitle" x="16" y="44">Dev split, 451 answerable questions · gray = baseline, blue = later experiments</text>
 <text class="label" x="16" y="93.0">M2 · dense (baseline)</text>
 <text class="label" x="16" y="123.0">3.1 · keyword only</text>
 <text class="label" x="16" y="153.0">3.1 · hybrid (RRF)</text>
+<text class="label" x="16" y="183.0">3.2 · semantic chunks (hybrid)</text>
+<text class="label" x="16" y="213.0">3.2 · recursive chunks (hybrid)</text>
 <text class="panel-title" x="226" y="62">recall@6</text>
-<line class="axis" x1="226.0" y1="70" x2="226.0" y2="164"/>
-<text class="tick" x="226.0" y="180" text-anchor="middle">0</text>
-<line class="grid" x1="284.0" y1="70" x2="284.0" y2="164"/>
-<text class="tick" x="284.0" y="180" text-anchor="middle">0.5</text>
-<line class="grid" x1="342.0" y1="70" x2="342.0" y2="164"/>
-<text class="tick" x="342.0" y="180" text-anchor="middle">1</text>
-<line class="ref" x1="291.1" y1="70" x2="291.1" y2="164"/>
+<line class="axis" x1="226.0" y1="70" x2="226.0" y2="224"/>
+<text class="tick" x="226.0" y="240" text-anchor="middle">0</text>
+<line class="grid" x1="284.0" y1="70" x2="284.0" y2="224"/>
+<text class="tick" x="284.0" y="240" text-anchor="middle">0.5</text>
+<line class="grid" x1="342.0" y1="70" x2="342.0" y2="224"/>
+<text class="tick" x="342.0" y="240" text-anchor="middle">1</text>
+<line class="ref" x1="291.1" y1="70" x2="291.1" y2="224"/>
 <path class="bar-baseline" d="M226.0,80.0 H287.1 Q291.1,80.0 291.1,84.0 V94.0 Q291.1,98.0 287.1,98.0 H226.0 Z"><title>M2 · dense (baseline) · recall@6 0.56</title></path>
 <text class="value" x="296.1" y="93.0">0.56</text>
 <path class="bar-run" d="M226.0,110.0 H277.9 Q281.9,110.0 281.9,114.0 V124.0 Q281.9,128.0 277.9,128.0 H226.0 Z"><title>3.1 · keyword only · recall@6 0.48 (-0.08 vs baseline)</title></path>
 <text class="value" x="286.9" y="123.0">0.48</text>
 <path class="bar-run" d="M226.0,140.0 H292.3 Q296.3,140.0 296.3,144.0 V154.0 Q296.3,158.0 292.3,158.0 H226.0 Z"><title>3.1 · hybrid (RRF) · recall@6 0.61 (+0.04 vs baseline)</title></path>
 <text class="value" x="301.3" y="153.0">0.61</text>
+<path class="bar-run" d="M226.0,170.0 H292.9 Q296.9,170.0 296.9,174.0 V184.0 Q296.9,188.0 292.9,188.0 H226.0 Z"><title>3.2 · semantic chunks (hybrid) · recall@6 0.61 (+0.05 vs baseline)</title></path>
+<text class="value" x="301.9" y="183.0">0.61</text>
+<path class="bar-run" d="M226.0,200.0 H292.3 Q296.3,200.0 296.3,204.0 V214.0 Q296.3,218.0 292.3,218.0 H226.0 Z"><title>3.2 · recursive chunks (hybrid) · recall@6 0.61 (+0.05 vs baseline)</title></path>
+<text class="value" x="301.3" y="213.0">0.61</text>
 <text class="panel-title" x="398" y="62">fact recall</text>
-<line class="axis" x1="398.0" y1="70" x2="398.0" y2="164"/>
-<text class="tick" x="398.0" y="180" text-anchor="middle">0</text>
-<line class="grid" x1="456.0" y1="70" x2="456.0" y2="164"/>
-<text class="tick" x="456.0" y="180" text-anchor="middle">0.5</text>
-<line class="grid" x1="514.0" y1="70" x2="514.0" y2="164"/>
-<text class="tick" x="514.0" y="180" text-anchor="middle">1</text>
-<line class="ref" x1="448.9" y1="70" x2="448.9" y2="164"/>
+<line class="axis" x1="398.0" y1="70" x2="398.0" y2="224"/>
+<text class="tick" x="398.0" y="240" text-anchor="middle">0</text>
+<line class="grid" x1="456.0" y1="70" x2="456.0" y2="224"/>
+<text class="tick" x="456.0" y="240" text-anchor="middle">0.5</text>
+<line class="grid" x1="514.0" y1="70" x2="514.0" y2="224"/>
+<text class="tick" x="514.0" y="240" text-anchor="middle">1</text>
+<line class="ref" x1="448.9" y1="70" x2="448.9" y2="224"/>
 <path class="bar-baseline" d="M398.0,80.0 H444.9 Q448.9,80.0 448.9,84.0 V94.0 Q448.9,98.0 444.9,98.0 H398.0 Z"><title>M2 · dense (baseline) · fact recall 0.44</title></path>
 <text class="value" x="453.9" y="93.0">0.44</text>
 <path class="bar-run" d="M398.0,110.0 H434.9 Q438.9,110.0 438.9,114.0 V124.0 Q438.9,128.0 434.9,128.0 H398.0 Z"><title>3.1 · keyword only · fact recall 0.35 (-0.09 vs baseline)</title></path>
 <text class="value" x="443.9" y="123.0">0.35</text>
 <path class="bar-run" d="M398.0,140.0 H450.1 Q454.1,140.0 454.1,144.0 V154.0 Q454.1,158.0 450.1,158.0 H398.0 Z"><title>3.1 · hybrid (RRF) · fact recall 0.48 (+0.04 vs baseline)</title></path>
 <text class="value" x="459.1" y="153.0">0.48</text>
+<path class="bar-run" d="M398.0,170.0 H448.6 Q452.6,170.0 452.6,174.0 V184.0 Q452.6,188.0 448.6,188.0 H398.0 Z"><title>3.2 · semantic chunks (hybrid) · fact recall 0.47 (+0.03 vs baseline)</title></path>
+<text class="value" x="457.6" y="183.0">0.47</text>
+<path class="bar-run" d="M398.0,200.0 H449.0 Q453.0,200.0 453.0,204.0 V214.0 Q453.0,218.0 449.0,218.0 H398.0 Z"><title>3.2 · recursive chunks (hybrid) · fact recall 0.47 (+0.04 vs baseline)</title></path>
+<text class="value" x="458.0" y="213.0">0.47</text>
 <text class="panel-title" x="570" y="62">MRR</text>
-<line class="axis" x1="570.0" y1="70" x2="570.0" y2="164"/>
-<text class="tick" x="570.0" y="180" text-anchor="middle">0</text>
-<line class="grid" x1="628.0" y1="70" x2="628.0" y2="164"/>
-<text class="tick" x="628.0" y="180" text-anchor="middle">0.5</text>
-<line class="grid" x1="686.0" y1="70" x2="686.0" y2="164"/>
-<text class="tick" x="686.0" y="180" text-anchor="middle">1</text>
-<line class="ref" x1="654.7" y1="70" x2="654.7" y2="164"/>
+<line class="axis" x1="570.0" y1="70" x2="570.0" y2="224"/>
+<text class="tick" x="570.0" y="240" text-anchor="middle">0</text>
+<line class="grid" x1="628.0" y1="70" x2="628.0" y2="224"/>
+<text class="tick" x="628.0" y="240" text-anchor="middle">0.5</text>
+<line class="grid" x1="686.0" y1="70" x2="686.0" y2="224"/>
+<text class="tick" x="686.0" y="240" text-anchor="middle">1</text>
+<line class="ref" x1="654.7" y1="70" x2="654.7" y2="224"/>
 <path class="bar-baseline" d="M570.0,80.0 H650.7 Q654.7,80.0 654.7,84.0 V94.0 Q654.7,98.0 650.7,98.0 H570.0 Z"><title>M2 · dense (baseline) · MRR 0.73</title></path>
 <text class="value" x="659.7" y="93.0">0.73</text>
 <path class="bar-run" d="M570.0,110.0 H633.3 Q637.3,110.0 637.3,114.0 V124.0 Q637.3,128.0 633.3,128.0 H570.0 Z"><title>3.1 · keyword only · MRR 0.58 (-0.15 vs baseline)</title></path>
 <text class="value" x="642.3" y="123.0">0.58</text>
 <path class="bar-run" d="M570.0,140.0 H653.6 Q657.6,140.0 657.6,144.0 V154.0 Q657.6,158.0 653.6,158.0 H570.0 Z"><title>3.1 · hybrid (RRF) · MRR 0.76 (+0.02 vs baseline)</title></path>
 <text class="value" x="662.6" y="153.0">0.76</text>
+<path class="bar-run" d="M570.0,170.0 H656.0 Q660.0,170.0 660.0,174.0 V184.0 Q660.0,188.0 656.0,188.0 H570.0 Z"><title>3.2 · semantic chunks (hybrid) · MRR 0.78 (+0.05 vs baseline)</title></path>
+<text class="value" x="665.0" y="183.0">0.78</text>
+<path class="bar-run" d="M570.0,200.0 H655.2 Q659.2,200.0 659.2,204.0 V214.0 Q659.2,218.0 655.2,218.0 H570.0 Z"><title>3.2 · recursive chunks (hybrid) · MRR 0.77 (+0.04 vs baseline)</title></path>
+<text class="value" x="664.2" y="213.0">0.77</text>
 <text class="panel-title" x="742" y="62">hit@6</text>
-<line class="axis" x1="742.0" y1="70" x2="742.0" y2="164"/>
-<text class="tick" x="742.0" y="180" text-anchor="middle">0</text>
-<line class="grid" x1="800.0" y1="70" x2="800.0" y2="164"/>
-<text class="tick" x="800.0" y="180" text-anchor="middle">0.5</text>
-<line class="grid" x1="858.0" y1="70" x2="858.0" y2="164"/>
-<text class="tick" x="858.0" y="180" text-anchor="middle">1</text>
-<line class="ref" x1="845.4" y1="70" x2="845.4" y2="164"/>
+<line class="axis" x1="742.0" y1="70" x2="742.0" y2="224"/>
+<text class="tick" x="742.0" y="240" text-anchor="middle">0</text>
+<line class="grid" x1="800.0" y1="70" x2="800.0" y2="224"/>
+<text class="tick" x="800.0" y="240" text-anchor="middle">0.5</text>
+<line class="grid" x1="858.0" y1="70" x2="858.0" y2="224"/>
+<text class="tick" x="858.0" y="240" text-anchor="middle">1</text>
+<line class="ref" x1="845.4" y1="70" x2="845.4" y2="224"/>
 <path class="bar-baseline" d="M742.0,80.0 H841.4 Q845.4,80.0 845.4,84.0 V94.0 Q845.4,98.0 841.4,98.0 H742.0 Z"><title>M2 · dense (baseline) · hit@6 0.89</title></path>
 <text class="value" x="850.4" y="93.0">0.89</text>
 <path class="bar-run" d="M742.0,110.0 H831.1 Q835.1,110.0 835.1,114.0 V124.0 Q835.1,128.0 831.1,128.0 H742.0 Z"><title>3.1 · keyword only · hit@6 0.80 (-0.09 vs baseline)</title></path>
 <text class="value" x="840.1" y="123.0">0.80</text>
 <path class="bar-run" d="M742.0,140.0 H844.0 Q848.0,140.0 848.0,144.0 V154.0 Q848.0,158.0 844.0,158.0 H742.0 Z"><title>3.1 · hybrid (RRF) · hit@6 0.91 (+0.02 vs baseline)</title></path>
 <text class="value" x="853.0" y="153.0">0.91</text>
+<path class="bar-run" d="M742.0,170.0 H845.3 Q849.3,170.0 849.3,174.0 V184.0 Q849.3,188.0 845.3,188.0 H742.0 Z"><title>3.2 · semantic chunks (hybrid) · hit@6 0.92 (+0.03 vs baseline)</title></path>
+<text class="value" x="854.3" y="183.0">0.92</text>
+<path class="bar-run" d="M742.0,200.0 H844.7 Q848.7,200.0 848.7,204.0 V214.0 Q848.7,218.0 844.7,218.0 H742.0 Z"><title>3.2 · recursive chunks (hybrid) · hit@6 0.92 (+0.03 vs baseline)</title></path>
+<text class="value" x="853.7" y="213.0">0.92</text>
 </svg>

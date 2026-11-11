@@ -47,8 +47,9 @@ Find a question where keyword search wins (hint: a rare proper noun).
 Then compare chunk counts with `index list`. A lower percentile gives more, smaller chunks. Why?
 
 **Result:** a tie. Under hybrid search all three reach recall@6 0.61, with fact recall
-0.47–0.48 and MRR 0.76–0.78, at about 2,700–2,800 context tokens. Semantic chunking cost 5× the
-indexing time (17 min vs 3 min) because it embeds every sentence. News articles are short and
+0.47–0.48 and MRR 0.76–0.78. Semantic does it with the least text (2,668 context tokens vs
+2,865 for sentence), but indexing took 5× as long
+(17 min vs 3 min) because it embeds every sentence. News articles are short and
 on one topic, so where you cut them matters little. That is why sentence chunking stays the
 default (ADR 0010). Whether the small differences are real gets checked with paired confidence
 intervals in step 3.7.

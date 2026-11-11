@@ -12,7 +12,9 @@
 |---|--:|--:|--:|--:|--:|--:|--:|--:|--:|---|---|
 | M2 · dense (baseline) | 0.56 | — | 0.44 | — | 0.73 | — | 0.89 | — | — | `retrieval-dense-20261108-234016` | `085a59e` |
 | 3.1 · keyword only | 0.48 | −0.08 | 0.35 | −0.09 | 0.58 | −0.15 | 0.80 | −0.09 | — | `retrieval-keyword-20261111-173317` | `1bff4d0` |
-| 3.1 · hybrid (RRF) | 0.61 | +0.04 | 0.48 | +0.04 | 0.76 | +0.02 | 0.91 | +0.02 | — | `retrieval-hybrid-20261111-173451` | `1bff4d0` |
+| 3.1 · hybrid (RRF) | 0.61 | +0.04 | 0.48 | +0.04 | 0.76 | +0.02 | 0.91 | +0.02 | 2,865 | `retrieval-hybrid-20261111-180947` | `229c7a1` |
+| 3.2 · semantic chunks (hybrid) | 0.61 | +0.05 | 0.47 | +0.03 | 0.78 | +0.05 | 0.92 | +0.03 | 2,668 | `retrieval-hybrid-20261111-181156` | `229c7a1` |
+| 3.2 · recursive chunks (hybrid) | 0.61 | +0.05 | 0.47 | +0.04 | 0.77 | +0.04 | 0.92 | +0.03 | 2,791 | `retrieval-hybrid-20261111-181414` | `229c7a1` |
 
 *Context tokens* = average tokens in the top 6 chunks, i.e. what the LLM reads. Compare chunkers at a similar budget: more text can raise recall without better chunking.
 
@@ -23,6 +25,8 @@
 | M2 · dense (baseline) | 0.62 | 0.44 | 0.65 |
 | 3.1 · keyword only | 0.53 | 0.37 | 0.56 |
 | 3.1 · hybrid (RRF) | 0.70 | 0.47 | 0.66 |
+| 3.2 · semantic chunks (hybrid) | 0.69 | 0.49 | 0.67 |
+| 3.2 · recursive chunks (hybrid) | 0.69 | 0.49 | 0.65 |
 
 ## Answers
 
