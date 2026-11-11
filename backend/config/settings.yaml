@@ -37,6 +37,8 @@ retrieval:
   top_k: 6               # chunks given to the LLM
   candidates: 30         # hybrid: chunks each search brings before fusion
   rrf_k: 60              # hybrid: Reciprocal Rank Fusion constant
+  query_transform: none  # none | rewrite | multi_query | hyde (an LLM call before searching)
+  multi_queries: 3       # multi_query: extra queries the LLM writes
 
 index:
   alias: default         # which index version `ask` uses (see `main.py index list`)

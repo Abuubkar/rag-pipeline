@@ -6,6 +6,7 @@ so this package never imports a tracing library itself.
 
 from typing import Any
 
+import ollama
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_ollama import ChatOllama
 
@@ -23,6 +24,7 @@ class OllamaChat:
         callbacks: list[Any] | None = None,
     ):
         self.model = model
+        self._client = ollama.Client(host=base_url)
         self._callbacks = callbacks or []
         self._lc = ChatOllama(
             model=model,
@@ -47,3 +49,7 @@ class OllamaChat:
                 "output_tokens": usage.get("output_tokens", 0),
             },
         )
+
+    def unload(self) -> None:
+        """Free the model's memory now instead of after Ollama's 5-minute idle timeout."""
+        self._client.generate(model=self.model, prompt="", keep_alive=0)

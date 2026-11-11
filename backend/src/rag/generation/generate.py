@@ -4,7 +4,7 @@ from typing import Callable
 
 from rag.domain.models import Completion
 from rag.domain.state import AnswerState
-from rag.generation.prompts import Prompt
+from rag.core.prompts import Prompt
 from rag.packages.llm.ollama import OllamaChat
 
 

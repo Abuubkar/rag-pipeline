@@ -86,6 +86,13 @@ class IngestionReport(BaseModel):
 
 
 # ── Retrieval & generation ───────────────────────────────────────────
+class SearchQueries(BaseModel):
+    """What actually gets searched for one question (see retrieval/query_transform.py)."""
+
+    queries: list[str]  # searched like the question: dense and/or keyword
+    passages: list[str] = []  # HyDE: fake answer passages, embedded as documents (dense only)
+
+
 class ScoredChunk(BaseModel):
     """A retrieved chunk with the document fields needed to cite it."""
 
@@ -150,6 +157,7 @@ class RetrievalScore(BaseModel):
     reciprocal_rank: float  # 1 / rank of the first chunk from a gold article (0 if none)
     fact_recall: float  # share of evidence sentences found word-for-word in the top-k chunks
     context_tokens: int = 0  # tokens in those top-k chunks: what the LLM would have to read
+    searched: SearchQueries | None = None  # set when a query transform changed what was searched
 
 
 class AnswerScore(BaseModel):

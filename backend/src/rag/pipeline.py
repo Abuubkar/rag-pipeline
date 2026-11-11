@@ -19,17 +19,17 @@ import time
 from rag.container import Container
 from rag.db import index_registry
 from rag.db.session import session_scope
-from rag.domain.models import Answer, EvalRun, GoldenItem, IndexVersion, IngestionReport
+from rag.domain.models import Answer, EvalRun, GoldenItem, IndexVersion, IngestionReport, SearchQueries
 from rag.domain.state import AnswerState
 from rag.core.config import RESULTS_DIR
 from rag.evaluation import dataset, experiments, report, runs
 from rag.generation import citations, context, generate
-from rag.generation.prompts import load_prompt
+from rag.core.prompts import load_prompt
 from rag.ingestion import chunking, cleaning, indexing, loader
 from rag.ingestion.indexing import ProgressFn
 from rag.observability import tracing
 from rag.packages.orchestration import graph as graphs
-from rag.retrieval import search
+from rag.retrieval import query_transform, search
 
 
 # ══ WORKFLOW 1: INGEST ════════════════════════════════════════════════
@@ -80,6 +80,8 @@ def build_answer_graph(c: Container, version: IndexVersion, callbacks: list, wit
 
     nodes = []
     if with_search:
+        if c.settings.retrieval.query_transform != "none":
+            nodes.append(("retrieval.transform", query_transform.transform_node(**_transform_kwargs(c, chat))))
         embedder = c.query_embedder(version)        # refuses a mismatched embedder
         nodes.append(("retrieval.search", search.search_node(**_search_kwargs(c, version, embedder))))
     nodes += [
@@ -88,6 +90,12 @@ def build_answer_graph(c: Container, version: IndexVersion, callbacks: list, wit
         ("generation.citations", citations.citations_node),
     ]
     return graphs.build_graph(AnswerState, nodes, graphs.linear_edges(nodes))
+
+
+def _transform_kwargs(c: Container, chat) -> dict:
+    r = c.settings.retrieval
+    prompt = None if r.query_transform == "none" else load_prompt(r.query_transform)
+    return dict(mode=r.query_transform, chat=chat, prompt=prompt, n=r.multi_queries)
 
 
 def _search_kwargs(c: Container, version: IndexVersion, embedder) -> dict:
@@ -137,24 +145,55 @@ def evaluate_retrieval(
     c: Container, split: str = "dev", limit: int | None = None, on_progress=None,
     label: str | None = None,
 ) -> EvalRun:
+    r = c.settings.retrieval
     version = c.active_index()
-    embedder = c.query_embedder(version)
-    items = dataset.sample(golden_set(c, split), limit)
-
-    def search_fn(question: str, k: int):
-        return search.search(question, **{**_search_kwargs(c, version, embedder), "top_k": k})
-
-    ks = sorted({1, 3, c.settings.retrieval.top_k, 10})
-    run = runs.start(c.db_url, c.settings, "retrieval", c.settings.retrieval.mode, split, limit, version.id,
-                     extra={"ks": ks, "embedder": embedder.info().model_dump()}, label=label)
+    items = [i for i in dataset.sample(golden_set(c, split), limit) if i.answerable]
+    ks = sorted({1, 3, r.top_k, 10})
+    mode = r.mode if r.query_transform == "none" else f"{r.mode}-{r.query_transform}"
+    run = runs.start(c.db_url, c.settings, "retrieval", mode, split, limit, version.id,
+                     extra={"ks": ks, "embedder": version.manifest.dense.model_dump(),
+                            "query_prompt": _query_prompt_label(c)}, label=label)
     with tracing.trace("evaluate-retrieval", input={"split": split, "limit": limit},
                        tags=["eval"], metadata={"index_version": version.id, "eval_run": run.id}):
+        # Two phases, so only one Ollama model is in memory at a time:
+        # 1. the chat model writes every question's search queries (if a transform is on), then unloads;
+        # 2. the embedding model searches.
+        searched = _transform_all(c, items, on_progress)
+        embedder = c.query_embedder(version)
+
+        def search_fn(question: str, k: int):
+            return search.search(searched[question], **{**_search_kwargs(c, version, embedder), "top_k": k})
+
         with runs.recorded(c.db_url, run.id) as save:
-            save(*experiments.run_retrieval_eval(
-                items, search_fn, ks, fact_k=c.settings.retrieval.top_k, on_progress=on_progress
-            ))
+            scores, report = experiments.run_retrieval_eval(items, search_fn, ks, fact_k=r.top_k,
+                                                            on_progress=on_progress)
+            if r.query_transform != "none":  # keep what was searched, to read next to each score
+                questions = {i.id: i.question for i in items}
+                scores = [s.model_copy(update={"searched": searched[questions[s.item_id]]}) for s in scores]
+            save(scores, report)
     tracing.flush()
     return runs.get(c.db_url, run.id)
+
+
+def _transform_all(c: Container, items: list[GoldenItem], on_progress=None) -> dict[str, SearchQueries]:
+    """Phase 1 of an eval: the chat model writes every question's search queries, then unloads,
+    so it's never in memory next to the embedding model. With no transform, nothing is loaded."""
+    if c.settings.retrieval.query_transform == "none":
+        return {i.question: SearchQueries(queries=[i.question]) for i in items}
+    chat = c.generator(tracing.langchain_callbacks())
+    kwargs = _transform_kwargs(c, chat)
+    searched = {}
+    for n, item in enumerate(items, start=1):
+        searched[item.question] = query_transform.transform(item.question, **kwargs)
+        if on_progress:
+            on_progress(n, len(items))
+    chat.unload()
+    return searched
+
+
+def _query_prompt_label(c: Container) -> str | None:
+    t = c.settings.retrieval.query_transform
+    return None if t == "none" else load_prompt(t).label
 
 
 def evaluate_answers(
@@ -168,7 +207,8 @@ def evaluate_answers(
     mode = "rag" if retrieval else "closed_book"
     prompt = c.settings.prompts.answer if retrieval else c.settings.prompts.closed_book
     run = runs.start(c.db_url, c.settings, "answers", mode, split, limit, version.id,
-                     extra={"prompt": load_prompt(prompt).label}, label=label)
+                     extra={"prompt": load_prompt(prompt).label,
+                            "query_prompt": _query_prompt_label(c) if retrieval else None}, label=label)
     with tracing.trace(f"evaluate-answers-{mode}", input={"split": split, "limit": limit},
                        tags=["eval", mode], metadata={"index_version": version.id, "eval_run": run.id}):
         callbacks = tracing.langchain_callbacks()
@@ -176,11 +216,12 @@ def evaluate_answers(
             # Two phases, so only one Ollama model is in memory at a time:
             # 1. retrieve for every question (embedding model), then unload it;
             # 2. answer every question from those chunks (chat model only).
+            searched = _transform_all(c, items, on_progress)  # (0. only with a query transform)
             embedder = c.query_embedder(version)
             retrieved = {}
             for n, item in enumerate(items, start=1):
                 retrieved[item.question] = search.search(
-                    item.question, **_search_kwargs(c, version, embedder))
+                    searched[item.question], **_search_kwargs(c, version, embedder))
                 if on_progress:
                     on_progress(n, len(items))
             embedder.unload()

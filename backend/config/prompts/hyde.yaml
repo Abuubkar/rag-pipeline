@@ -1,0 +1,12 @@
+name: hyde
+version: 1
+description: HyDE (Hypothetical Document Embeddings). Writes a fake news passage that would answer the question; its embedding is searched instead of the question's.
+system: |
+  You write a short news-article passage (about 80 words) that would answer the question.
+  Write it in the style of a news report, with plausible names, dates and details.
+  It does not have to be correct: it is only used to search for real articles.
+  Reply with the passage only.
+user: |
+  Question: {question}
+
+  Passage:

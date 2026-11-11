@@ -16,7 +16,7 @@ rrf_k (60, from the original paper) flattens the curve: rank 1 vs rank 2 matters
 from typing import Callable
 
 from rag.db.session import session_scope
-from rag.domain.models import ScoredChunk
+from rag.domain.models import ScoredChunk, SearchQueries
 from rag.domain.state import AnswerState
 from rag.observability.tracing import annotate
 from rag.packages.embeddings.ollama import OllamaEmbedder
@@ -24,11 +24,10 @@ from rag.packages.vectorstore import pgvector
 
 
 def dense_search(
-    question: str, *, db_url: str, version_id: str, embedder: OllamaEmbedder, top_k: int
+    vector: list[float], *, db_url: str, version_id: str, top_k: int
 ) -> list[ScoredChunk]:
-    query_vector = embedder.embed_query(question)
     with session_scope(db_url) as s:
-        return pgvector.dense_search(s, version_id, query_vector, top_k)
+        return pgvector.dense_search(s, version_id, vector, top_k)
 
 
 def keyword_search(question: str, *, db_url: str, version_id: str, top_k: int) -> list[ScoredChunk]:
@@ -48,28 +47,36 @@ def rrf_fuse(ranked_lists: list[list[ScoredChunk]], rrf_k: int, top_k: int) -> l
 
 
 def search(
-    question: str, *, mode: str, db_url: str, version_id: str, embedder: OllamaEmbedder,
+    searched: SearchQueries | str, *, mode: str, db_url: str, version_id: str, embedder: OllamaEmbedder,
     top_k: int, candidates: int, rrf_k: int,
 ) -> list[ScoredChunk]:
-    if mode == "dense":
-        return dense_search(question, db_url=db_url, version_id=version_id, embedder=embedder, top_k=top_k)
-    if mode == "keyword":
-        return keyword_search(question, db_url=db_url, version_id=version_id, top_k=top_k)
-    if mode == "hybrid":
-        # Each side brings more candidates than we keep, so a chunk ranked 20th by one search
-        # but 3rd by the other can still make the final top_k.
-        dense = dense_search(question, db_url=db_url, version_id=version_id, embedder=embedder,
-                             top_k=max(candidates, top_k))
-        keyword = keyword_search(question, db_url=db_url, version_id=version_id,
-                                 top_k=max(candidates, top_k))
-        return rrf_fuse([dense, keyword], rrf_k, top_k)
-    raise ValueError(f"Unknown retrieval mode: {mode} (dense | keyword | hybrid)")
+    """`searched` is the question itself, or what a query transform made of it (several queries,
+    HyDE passages). Every query and passage gives one ranked list; more than one list → RRF."""
+    if mode not in ("dense", "keyword", "hybrid"):
+        raise ValueError(f"Unknown retrieval mode: {mode} (dense | keyword | hybrid)")
+    if isinstance(searched, str):
+        searched = SearchQueries(queries=[searched])
+    # Each list brings more candidates than we keep, so a chunk ranked 20th in one list
+    # but 3rd in another can still make the final top_k.
+    n = max(candidates, top_k)
+    where = dict(db_url=db_url, version_id=version_id, top_k=n)
+    ranked_lists = []
+    for query in searched.queries:
+        if mode in ("dense", "hybrid"):
+            ranked_lists.append(dense_search(embedder.embed_query(query), **where))
+        if mode in ("keyword", "hybrid"):
+            ranked_lists.append(keyword_search(query, **where))
+    for passage in searched.passages:  # HyDE: a passage is compared with chunks as a document
+        ranked_lists.append(dense_search(embedder.embed_documents([passage])[0], **where))
+    if len(ranked_lists) == 1:
+        return ranked_lists[0][:top_k]  # one list: keep its own scores (cosine or ts_rank_cd)
+    return rrf_fuse(ranked_lists, rrf_k, top_k)
 
 
 def search_node(**search_kwargs) -> Callable[[AnswerState], dict]:
-    """search_kwargs: everything `search` takes except the question."""
+    """search_kwargs: everything `search` takes except what to search for."""
     def node(state: AnswerState) -> dict:
-        chunks = search(state["question"], **search_kwargs)
+        chunks = search(state.get("searched") or state["question"], **search_kwargs)
         annotate(output=[{"title": c.title, "score": round(c.score, 4)} for c in chunks],
                  metadata={"mode": search_kwargs["mode"]})
         return {"chunks": chunks}

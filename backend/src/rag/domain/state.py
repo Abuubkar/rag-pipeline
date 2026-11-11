@@ -5,12 +5,14 @@ Each node reads some keys and returns a dict with the keys it updates.
 
 from typing import TypedDict
 
-from rag.domain.models import Citation, Completion, ScoredChunk
+from rag.domain.models import Citation, Completion, ScoredChunk, SearchQueries
 
 
 class AnswerState(TypedDict, total=False):
     # input
     question: str
+    # retrieval.transform (only when retrieval.query_transform isn't "none")
+    searched: SearchQueries
     # retrieval.search
     chunks: list[ScoredChunk]
     # generation.context
