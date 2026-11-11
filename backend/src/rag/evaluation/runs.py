@@ -13,11 +13,11 @@ from rag.domain.models import EvalRun
 
 
 def start(db_url: str, settings: Settings, kind: str, mode: str, split: str, limit: int | None,
-          index_version_id: str, extra: dict[str, Any]) -> EvalRun:
+          index_version_id: str, extra: dict[str, Any], label: str | None = None) -> EvalRun:
     snapshot = provenance.config_snapshot(settings)
     run = EvalRun(
         id=f"{kind}-{mode}-{datetime.now():%Y%m%d-%H%M%S}",
-        kind=kind, mode=mode, split=split, status="running",
+        kind=kind, mode=mode, split=split, status="running", label=label,
         index_version_id=index_version_id,
         config_hash=provenance.config_hash(snapshot),
         config=snapshot,
@@ -55,3 +55,13 @@ def get(db_url: str, run_id: str) -> EvalRun:
 def recent(db_url: str, limit: int = 20) -> list[EvalRun]:
     with session_scope(db_url) as s:
         return eval_registry.list_runs(s, limit)
+
+
+def set_label(db_url: str, run_id: str, label: str | None) -> bool:
+    with session_scope(db_url) as s:
+        return eval_registry.set_label(s, run_id, label)
+
+
+def labelled(db_url: str, kind: str) -> list[EvalRun]:
+    with session_scope(db_url) as s:
+        return eval_registry.labelled_runs(s, kind)

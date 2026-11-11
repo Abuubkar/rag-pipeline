@@ -48,6 +48,24 @@ def get_run(session: Session, run_id: str) -> EvalRun | None:
     return _to_domain(row) if row else None
 
 
+def set_label(session: Session, run_id: str, label: str | None) -> bool:
+    row = session.get(EvalRunRow, run_id)
+    if row is None:
+        return False
+    row.label = label
+    return True
+
+
+def labelled_runs(session: Session, kind: str) -> list[EvalRun]:
+    """Finished, labelled runs of one kind, oldest first (the first one is the baseline)."""
+    rows = session.scalars(
+        select(EvalRunRow)
+        .where(EvalRunRow.kind == kind, EvalRunRow.label.is_not(None), EvalRunRow.status == "done")
+        .order_by(EvalRunRow.created_at)
+    )
+    return [_to_domain(r) for r in rows]
+
+
 def get_results(session: Session, run_id: str) -> dict[str, dict[str, Any]]:
     rows = session.scalars(select(EvalResultRow).where(EvalResultRow.run_id == run_id))
     return {r.item_id: {"question_type": r.question_type, **r.scores} for r in rows}

@@ -32,7 +32,10 @@ chunking:
   contextual_header: true  # prepend title/source/date before embedding
 
 retrieval:
-  top_k: 6
+  mode: hybrid           # dense | keyword | hybrid (keyword = Postgres full-text search)
+  top_k: 6               # chunks given to the LLM
+  candidates: 30         # hybrid: chunks each search brings before fusion
+  rrf_k: 60              # hybrid: Reciprocal Rank Fusion constant
 
 index:
   alias: default         # which index version `ask` uses (see `main.py index list`)

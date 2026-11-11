@@ -8,6 +8,7 @@ Workflow 3  golden_set()           evaluation questions with known answers, spli
             evaluate_answers()     score generated answers against the reference answers
                                    (retrieval=False: no-retrieval baseline)
             eval_runs() / eval_run()   saved runs, to compare setups over time
+            write_results()        docs/results: before/after tables + charts from labelled runs
 
 Folders hold the *capabilities* (ingestion/, retrieval/, generation/ …);
 this file decides the *order* they run in.
@@ -20,7 +21,8 @@ from rag.db import index_registry
 from rag.db.session import session_scope
 from rag.domain.models import Answer, EvalRun, GoldenItem, IndexVersion, IngestionReport
 from rag.domain.state import AnswerState
-from rag.evaluation import dataset, experiments, runs
+from rag.core.config import RESULTS_DIR
+from rag.evaluation import dataset, experiments, report, runs
 from rag.generation import citations, context, generate
 from rag.generation.prompts import load_prompt
 from rag.ingestion import chunking, cleaning, indexing, loader
@@ -79,15 +81,19 @@ def build_answer_graph(c: Container, version: IndexVersion, callbacks: list, wit
     nodes = []
     if with_search:
         embedder = c.query_embedder(version)        # refuses a mismatched embedder
-        nodes.append(("retrieval.search", search.search_node(
-            db_url=c.db_url, version_id=version.id, embedder=embedder,
-            top_k=c.settings.retrieval.top_k)))
+        nodes.append(("retrieval.search", search.search_node(**_search_kwargs(c, version, embedder))))
     nodes += [
         ("generation.context",   context.context_node),
         ("generation.generate",  generate.generate_node(chat=chat, prompt=prompt)),
         ("generation.citations", citations.citations_node),
     ]
     return graphs.build_graph(AnswerState, nodes, graphs.linear_edges(nodes))
+
+
+def _search_kwargs(c: Container, version: IndexVersion, embedder) -> dict:
+    r = c.settings.retrieval
+    return dict(mode=r.mode, db_url=c.db_url, version_id=version.id, embedder=embedder,
+                top_k=r.top_k, candidates=r.candidates, rrf_k=r.rrf_k)
 
 
 def answer(c: Container, question: str) -> tuple[Answer, str | None]:
@@ -128,20 +134,19 @@ def golden_set(c: Container, split: str | None = None) -> list[GoldenItem]:
 
 
 def evaluate_retrieval(
-    c: Container, split: str = "dev", limit: int | None = None, on_progress=None
+    c: Container, split: str = "dev", limit: int | None = None, on_progress=None,
+    label: str | None = None,
 ) -> EvalRun:
     version = c.active_index()
     embedder = c.query_embedder(version)
     items = dataset.sample(golden_set(c, split), limit)
 
     def search_fn(question: str, k: int):
-        return search.dense_search(
-            question, db_url=c.db_url, version_id=version.id, embedder=embedder, top_k=k
-        )
+        return search.search(question, **{**_search_kwargs(c, version, embedder), "top_k": k})
 
     ks = sorted({1, 3, c.settings.retrieval.top_k, 10})
-    run = runs.start(c.db_url, c.settings, "retrieval", "dense", split, limit, version.id,
-                     extra={"ks": ks, "embedder": embedder.info().model_dump()})
+    run = runs.start(c.db_url, c.settings, "retrieval", c.settings.retrieval.mode, split, limit, version.id,
+                     extra={"ks": ks, "embedder": embedder.info().model_dump()}, label=label)
     with tracing.trace("evaluate-retrieval", input={"split": split, "limit": limit},
                        tags=["eval"], metadata={"index_version": version.id, "eval_run": run.id}):
         with runs.recorded(c.db_url, run.id) as save:
@@ -154,7 +159,7 @@ def evaluate_retrieval(
 
 def evaluate_answers(
     c: Container, split: str = "dev", limit: int | None = None,
-    retrieval: bool = True, on_progress=None,
+    retrieval: bool = True, on_progress=None, label: str | None = None,
 ) -> EvalRun:
     """retrieval=False is the no-retrieval baseline: the same LLM answers with no sources.
     If it scores close to RAG, the model already knew the answers and RAG adds little."""
@@ -163,7 +168,7 @@ def evaluate_answers(
     mode = "rag" if retrieval else "closed_book"
     prompt = c.settings.prompts.answer if retrieval else c.settings.prompts.closed_book
     run = runs.start(c.db_url, c.settings, "answers", mode, split, limit, version.id,
-                     extra={"prompt": load_prompt(prompt).label})
+                     extra={"prompt": load_prompt(prompt).label}, label=label)
     with tracing.trace(f"evaluate-answers-{mode}", input={"split": split, "limit": limit},
                        tags=["eval", mode], metadata={"index_version": version.id, "eval_run": run.id}):
         callbacks = tracing.langchain_callbacks()
@@ -174,9 +179,8 @@ def evaluate_answers(
             embedder = c.query_embedder(version)
             retrieved = {}
             for n, item in enumerate(items, start=1):
-                retrieved[item.question] = search.dense_search(
-                    item.question, db_url=c.db_url, version_id=version.id,
-                    embedder=embedder, top_k=c.settings.retrieval.top_k)
+                retrieved[item.question] = search.search(
+                    item.question, **_search_kwargs(c, version, embedder))
                 if on_progress:
                     on_progress(n, len(items))
             embedder.unload()
@@ -209,3 +213,12 @@ def eval_runs(c: Container, limit: int = 20) -> list[EvalRun]:
 
 def eval_run(c: Container, run_id: str) -> EvalRun:
     return runs.get(c.db_url, run_id)
+
+
+def label_eval_run(c: Container, run_id: str, label: str | None) -> bool:
+    return runs.set_label(c.db_url, run_id, label)
+
+
+def write_results(c: Container):
+    return report.write_report(RESULTS_DIR, runs.labelled(c.db_url, "retrieval"),
+                               runs.labelled(c.db_url, "answers"))

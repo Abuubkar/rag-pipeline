@@ -4,6 +4,7 @@ A production-style Retrieval-Augmented Generation system built to learn LangChai
 LlamaIndex, pgvector, Langfuse/LangSmith and RAG evaluation, one milestone at a time.
 
 - **Plan & backlog:** [docs/PLAN.md](docs/PLAN.md)
+- **Results (before/after, charts):** [docs/results/](docs/results/README.md)
 - **Decisions:** [docs/adr/](docs/adr/)
 - **What to learn per milestone:** [docs/concepts/](docs/concepts/)
 - **Start reading the code at:** `backend/src/rag/pipeline.py`
@@ -28,6 +29,8 @@ uv run main.py eval retrieval             # ~30 s: hit@k, recall@k, MRR, fact re
 uv run main.py eval answers --limit 50    # LLM answers vs reference (slow: 1 call per question)
 uv run main.py eval answers --limit 50 --no-retrieval   # baseline: what the model already knows
 uv run main.py eval runs                  # saved runs with config hash + git commit
+uv run main.py eval label <run> "name"    # include a run in docs/results
+uv run main.py eval report                # regenerate docs/results tables + charts
 uv run pytest                             # AI-behaviour tests
 uv run lint-imports                       # architecture rules
 ```

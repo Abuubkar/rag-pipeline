@@ -169,9 +169,10 @@ class EvalRun(BaseModel):
 
     id: str
     kind: str  # retrieval | answers
-    mode: str  # dense | rag | closed_book
+    mode: str  # dense | keyword | hybrid | rag | closed_book
     split: str
     status: str  # running | done | failed
+    label: str | None = None  # set → the run appears in docs/results
     questions: int = 0
     index_version_id: str
     config_hash: str

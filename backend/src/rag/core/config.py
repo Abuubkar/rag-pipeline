@@ -14,6 +14,7 @@ from pydantic_settings import (
 BACKEND_DIR = Path(__file__).resolve().parents[3]
 CONFIG_DIR = BACKEND_DIR / "config"
 PROMPTS_DIR = CONFIG_DIR / "prompts"
+RESULTS_DIR = BACKEND_DIR.parent / "docs" / "results"
 
 
 class DatasetConfig(BaseModel):
@@ -56,7 +57,10 @@ class ChunkingConfig(BaseModel):
 
 
 class RetrievalConfig(BaseModel):
-    top_k: int = 6
+    mode: str = "dense"     # dense | keyword | hybrid
+    top_k: int = 6          # chunks given to the LLM
+    candidates: int = 30    # hybrid: chunks each search brings before fusion
+    rrf_k: int = 60         # hybrid: RRF smoothing constant
 
 
 class IndexConfig(BaseModel):

@@ -91,7 +91,7 @@ class EvalRunRow(Base):
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
     kind: Mapped[str] = mapped_column(String)  # retrieval | answers
-    mode: Mapped[str] = mapped_column(String)  # dense | rag | closed_book
+    mode: Mapped[str] = mapped_column(String)  # dense | keyword | hybrid | rag | closed_book
     split: Mapped[str] = mapped_column(String)  # dev | test
     status: Mapped[str] = mapped_column(String)  # running | done | failed
     questions: Mapped[int] = mapped_column(Integer, default=0)
@@ -100,6 +100,7 @@ class EvalRunRow(Base):
     config: Mapped[dict[str, Any]] = mapped_column(JSONB)  # settings used (no secrets)
     provenance: Mapped[dict[str, Any]] = mapped_column(JSONB)  # git commit, prompt, model, dataset…
     summary: Mapped[dict[str, Any] | None] = mapped_column(JSON)  # report per question type (JSON keeps key order)
+    label: Mapped[str | None] = mapped_column(Text)  # set → the run appears in docs/results
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 

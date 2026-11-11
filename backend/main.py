@@ -11,6 +11,8 @@
     uv run main.py eval answers --no-retrieval  # baseline: same LLM, no sources
     uv run main.py eval runs                  # saved runs (Postgres), newest first
     uv run main.py eval show <run-id>         # a saved run's report + provenance
+    uv run main.py eval label <run-id> "name" # include the run in docs/results
+    uv run main.py eval report                # docs/results: before/after tables + charts
 """
 
 import subprocess
@@ -153,11 +155,12 @@ def eval_dataset() -> None:
 def eval_retrieval(
     split: str = typer.Option("dev", help="dev (for tuning) or test (final numbers only)."),
     limit: int = typer.Option(None, help="Only the first N questions (quick check)."),
+    label: str = typer.Option(None, help="Name this run; labelled runs appear in docs/results."),
 ) -> None:
     """Score search: does it bring back the gold articles and evidence sentences?"""
     c = Container()
     with _progress("Searching") as on_progress:
-        run = pipeline.evaluate_retrieval(c, split, limit, on_progress=on_progress)
+        run = pipeline.evaluate_retrieval(c, split, limit, on_progress=on_progress, label=label)
     _print_run(run)
 
 
@@ -166,11 +169,12 @@ def eval_answers(
     split: str = typer.Option("dev", help="dev (for tuning) or test (final numbers only)."),
     limit: int = typer.Option(None, help="Only the first N questions (each one is an LLM call)."),
     retrieval: bool = typer.Option(True, help="--no-retrieval: baseline that answers without sources."),
+    label: str = typer.Option(None, help="Name this run; labelled runs appear in docs/results."),
 ) -> None:
     """Score generated answers against the reference answers (runs the full answer graph)."""
     c = Container()
     with _progress("Answering") as on_progress:
-        run = pipeline.evaluate_answers(c, split, limit, retrieval, on_progress=on_progress)
+        run = pipeline.evaluate_answers(c, split, limit, retrieval, on_progress=on_progress, label=label)
     _print_run(run)
 
 
@@ -178,7 +182,7 @@ def eval_answers(
 def eval_runs(limit: int = typer.Option(20, help="How many recent runs to show.")) -> None:
     """List saved eval runs with their headline number."""
     table = Table(title="Eval runs (newest first)")
-    for col in ("run", "status", "split", "n", "headline", "commit"):
+    for col in ("run", "label", "status", "split", "n", "headline", "commit"):
         table.add_column(col, no_wrap=col == "run")
     for run in pipeline.eval_runs(Container(), limit):
         headline = ""
@@ -186,9 +190,24 @@ def eval_runs(limit: int = typer.Option(20, help="How many recent runs to show."
             key = "recall@" + str(Container().settings.retrieval.top_k) if run.kind == "retrieval" else "accuracy"
             headline = f"{key} {run.summary['all'][key]:.2f}"
         commit = (run.provenance.get("git_commit") or "") + ("*" if run.provenance.get("git_dirty") else "")
-        table.add_row(run.id, run.status, run.split, str(run.questions), headline, commit)
+        table.add_row(run.id, run.label or "", run.status, run.split, str(run.questions), headline, commit)
     console.print(table)
     console.print("[dim]* = uncommitted changes when the run started · details: main.py eval show <run>[/dim]")
+
+
+@eval_app.command("label")
+def eval_label(run_id: str, label: str = typer.Argument(None, help="Leave out to remove the label.")) -> None:
+    """Name a run so it appears in docs/results (or remove its label)."""
+    if not pipeline.label_eval_run(Container(), run_id, label):
+        raise RagError(f"No eval run '{run_id}'.")
+    console.print(f"{run_id} → {label!r}. Run `main.py eval report` to update docs/results.")
+
+
+@eval_app.command("report")
+def eval_report() -> None:
+    """Write docs/results (before/after tables + charts) from the labelled runs."""
+    path = pipeline.write_results(Container())
+    console.print(f"Wrote {path} and charts/")
 
 
 @eval_app.command("show")
@@ -199,7 +218,8 @@ def eval_show(run_id: str) -> None:
 
 def _print_run(run) -> None:
     p = run.provenance
-    what = {"dense": "dense search", "rag": "RAG answers", "closed_book": "no-retrieval baseline"}[run.mode]
+    what = (f"{run.mode} search" if run.kind == "retrieval"
+            else {"rag": "RAG answers", "closed_book": "no-retrieval baseline"}[run.mode])
     detail = f"fact recall @ top {run.config['retrieval']['top_k']}" if run.kind == "retrieval" else f"{p['model']} · {p['prompt']}"
     _print_report(run.summary or {}, f"{what} on {run.split} · {detail}")
     console.print(f"[dim]run {run.id} · status {run.status} · index {run.index_version_id} · config {run.config_hash} · "
