@@ -11,8 +11,8 @@
 | Experiment | recall@6 | Δ | fact recall | Δ | MRR | Δ | hit@6 | Δ | run | commit |
 |---|--:|--:|--:|--:|--:|--:|--:|--:|---|---|
 | M2 · dense (baseline) | 0.56 | — | 0.44 | — | 0.73 | — | 0.89 | — | `retrieval-dense-20261108-234016` | `085a59e` |
-| 3.1 · keyword only | 0.48 | −0.08 | 0.35 | −0.09 | 0.58 | −0.15 | 0.80 | −0.09 | `retrieval-keyword-20261111-154218` | `7a27feb*` |
-| 3.1 · hybrid (RRF) | 0.61 | +0.04 | 0.48 | +0.04 | 0.76 | +0.02 | 0.91 | +0.02 | `retrieval-hybrid-20261111-154351` | `7a27feb*` |
+| 3.1 · keyword only | 0.48 | −0.08 | 0.35 | −0.09 | 0.58 | −0.15 | 0.80 | −0.09 | `retrieval-keyword-20261111-173317` | `1bff4d0` |
+| 3.1 · hybrid (RRF) | 0.61 | +0.04 | 0.48 | +0.04 | 0.76 | +0.02 | 0.91 | +0.02 | `retrieval-hybrid-20261111-173451` | `1bff4d0` |
 
 **recall@6 by question type**
 
