@@ -53,3 +53,47 @@ Then compare chunk counts with `index list`. A lower percentile gives more, smal
 on one topic, so where you cut them matters little. That is why sentence chunking stays the
 default (ADR 0010). Whether the small differences are real gets checked with paired confidence
 intervals in step 3.7.
+
+## 3. Query transformation: rewrite, multi-query, HyDE (step 3.3, ≈ 1.5 h)
+**Learn:**
+- Three ways to let the LLM change *what gets searched* before searching:
+
+  | Transform | What is searched | LLM output |
+  |---|---|---|
+  | **Rewrite** | one short keyword query *instead of* the question | 1 line |
+  | **Multi-query** | the question + 3 sub-queries; all result lists fused with RRF | 3 lines |
+  | **HyDE** | the question + a fake answer passage, embedded **as a document** | ~80 words |
+
+- Why HyDE embeds the passage with the *document* prefix: the passage looks like an article, so
+  comparing it document-to-document is closer than question-to-document.
+- **Two-phase eval** again: gemma writes every question's queries, is unloaded
+  (`OllamaChat.unload`), and only then does nomic search. Two models are never in memory together.
+- Cost: one LLM call per question *before* search. Here that was about 3 s for rewrite and
+  multi-query, and about 8 s for HyDE: seconds of latency added to every `ask`.
+
+**Code:** `retrieval/query_transform.py` (`transform`, `transform_node`), `retrieval/search.py::search`
+(every query and passage becomes one ranked list), `config/prompts/{rewrite,multi_query,hyde}.yaml`,
+and `pipeline.py::_transform_all`.
+
+**Debug:** each question's generated queries are saved with its score:
+`docker exec rag-postgres psql -U rag -d rag -c "select scores->'searched' from eval_results where run_id='<run>' limit 5"`.
+
+**Result:** none of them is a clear win.
+
+| Transform | recall@6 | fact recall | questions better / worse than hybrid |
+|---|--:|--:|--:|
+| rewrite | 0.57 | 0.44 | 36 / 83 |
+| multi-query | 0.57 | 0.43 | 50 / 80 |
+| HyDE | 0.61 | 0.49 | 50 / 41 |
+
+Plain hybrid scores recall@6 0.61 and fact recall 0.48. Why the first two hurt:
+- MultiHop-RAG questions are already long and specific. A rewrite throws detail away.
+- The multi-query sub-queries lean on publication names and dates ("TechCrunch … October 7
+  2023"), which are *metadata*, not chunk text. Step 3.5 (metadata filters) targets exactly this.
+- With multi-query, the question's own dense and keyword lists are only 2 of the 8 fused lists,
+  so weaker sub-queries outvote it.
+
+HyDE helps a little on inference questions, at 8 s per query. `query_transform` stays `none`.
+
+**Exercise:** change `multi_query.yaml` so the sub-queries leave out publication names and
+dates, then re-run with `--limit 100`. Does it close the gap?

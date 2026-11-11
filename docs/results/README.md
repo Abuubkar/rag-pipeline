@@ -15,6 +15,9 @@
 | 3.1 · hybrid (RRF) | 0.61 | +0.04 | 0.48 | +0.04 | 0.76 | +0.02 | 0.91 | +0.02 | 2,865 | `retrieval-hybrid-20261111-180947` | `229c7a1` |
 | 3.2 · semantic chunks (hybrid) | 0.61 | +0.05 | 0.47 | +0.03 | 0.78 | +0.05 | 0.92 | +0.03 | 2,668 | `retrieval-hybrid-20261111-181156` | `229c7a1` |
 | 3.2 · recursive chunks (hybrid) | 0.61 | +0.05 | 0.47 | +0.04 | 0.77 | +0.04 | 0.92 | +0.03 | 2,791 | `retrieval-hybrid-20261111-181414` | `229c7a1` |
+| 3.3 · query rewrite (hybrid) | 0.57 | 0.00 | 0.44 | 0.00 | 0.71 | −0.02 | 0.88 | −0.01 | 2,856 | `retrieval-hybrid-rewrite-20261111-182907` | `72dd224` |
+| 3.3 · multi-query ×3 (hybrid) | 0.57 | +0.01 | 0.43 | −0.01 | 0.70 | −0.03 | 0.89 | 0.00 | 2,866 | `retrieval-hybrid-multi_query-20261111-185440` | `72dd224` |
+| 3.3 · HyDE (hybrid) | 0.61 | +0.05 | 0.49 | +0.05 | 0.76 | +0.03 | 0.92 | +0.02 | 2,823 | `retrieval-hybrid-hyde-20261111-193439` | `72dd224` |
 
 *Context tokens* = average tokens in the top 6 chunks, i.e. what the LLM reads. Compare chunkers at a similar budget: more text can raise recall without better chunking.
 
@@ -27,6 +30,9 @@
 | 3.1 · hybrid (RRF) | 0.70 | 0.47 | 0.66 |
 | 3.2 · semantic chunks (hybrid) | 0.69 | 0.49 | 0.67 |
 | 3.2 · recursive chunks (hybrid) | 0.69 | 0.49 | 0.65 |
+| 3.3 · query rewrite (hybrid) | 0.67 | 0.41 | 0.64 |
+| 3.3 · multi-query ×3 (hybrid) | 0.67 | 0.46 | 0.60 |
+| 3.3 · HyDE (hybrid) | 0.69 | 0.50 | 0.65 |
 
 ## Answers
 
