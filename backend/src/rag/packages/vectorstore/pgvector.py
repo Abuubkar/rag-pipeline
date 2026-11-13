@@ -5,6 +5,10 @@ Dense search uses the HNSW index with cosine distance (`<=>`). Because every que
 top candidates first and the filter can leave fewer than k rows.
 
 Keyword search uses the generated `tsv` column (GIN index) and ranks with `ts_rank_cd`.
+
+Both can be restricted to a list of sources (a metadata filter): a plain SQL WHERE on the joined
+documents table. For dense search the iterative scan matters even more then, since a filter on
+a few publications discards most of HNSW's first candidates.
 """
 
 from sqlalchemy import Text, func, select, text
@@ -48,8 +52,12 @@ def insert_chunks(session: Session, chunks: list[EmbeddedChunk]) -> None:
     session.execute(stmt.on_conflict_do_nothing(index_elements=["id"]))
 
 
+def list_sources(session: Session) -> list[str]:
+    return list(session.scalars(select(DocumentRow.source).where(DocumentRow.source.is_not(None)).distinct()))
+
+
 def dense_search(
-    session: Session, version_id: str, query_vector: list[float], k: int
+    session: Session, version_id: str, query_vector: list[float], k: int, sources: list[str] | None = None
 ) -> list[ScoredChunk]:
     session.execute(text("SET LOCAL hnsw.iterative_scan = relaxed_order"))
     session.execute(text("SET LOCAL hnsw.ef_search = 100"))
@@ -58,14 +66,16 @@ def dense_search(
     stmt = (
         select(ChunkRow, DocumentRow, distance.label("distance"))
         .join(DocumentRow, DocumentRow.id == ChunkRow.document_id)
-        .where(ChunkRow.version_id == version_id)
+        .where(ChunkRow.version_id == version_id, *_source_filter(sources))
         .order_by(distance)
         .limit(k)
     )
     return [_scored(chunk, doc, 1.0 - float(dist)) for chunk, doc, dist in session.execute(stmt)]  # cosine similarity
 
 
-def keyword_search(session: Session, version_id: str, query: str, k: int) -> list[ScoredChunk]:
+def keyword_search(
+    session: Session, version_id: str, query: str, k: int, sources: list[str] | None = None
+) -> list[ScoredChunk]:
     # plainto_tsquery stems the words and drops stop words, but joins them with AND, so a full
     # question matches almost nothing ("'cryptocurr' & 'trial' & 'fraud' & …"). Swapping & for |
     # matches chunks with ANY of the words; ts_rank_cd then ranks chunks that contain more of
@@ -75,11 +85,16 @@ def keyword_search(session: Session, version_id: str, query: str, k: int) -> lis
     stmt = (
         select(ChunkRow, DocumentRow, rank.label("rank"))
         .join(DocumentRow, DocumentRow.id == ChunkRow.document_id)
-        .where(ChunkRow.version_id == version_id, ChunkRow.tsv.op("@@")(tsquery))
+        .where(ChunkRow.version_id == version_id, ChunkRow.tsv.op("@@")(tsquery), *_source_filter(sources))
         .order_by(rank.desc())
         .limit(k)
     )
     return [_scored(chunk, doc, float(r)) for chunk, doc, r in session.execute(stmt)]
+
+
+def _source_filter(sources: list[str] | None) -> list:
+    """Metadata filter: only chunks from these publications (no filter when empty)."""
+    return [DocumentRow.source.in_(sources)] if sources else []
 
 
 def _scored(chunk: ChunkRow, doc: DocumentRow, score: float) -> ScoredChunk:

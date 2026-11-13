@@ -21,18 +21,21 @@ from rag.domain.state import AnswerState
 from rag.observability.tracing import annotate
 from rag.packages.embeddings.ollama import OllamaEmbedder
 from rag.packages.vectorstore import pgvector
+from rag.retrieval import metadata_filter
 
 
 def dense_search(
-    vector: list[float], *, db_url: str, version_id: str, top_k: int
+    vector: list[float], *, db_url: str, version_id: str, top_k: int, sources: list[str] | None = None
 ) -> list[ScoredChunk]:
     with session_scope(db_url) as s:
-        return pgvector.dense_search(s, version_id, vector, top_k)
+        return pgvector.dense_search(s, version_id, vector, top_k, sources)
 
 
-def keyword_search(question: str, *, db_url: str, version_id: str, top_k: int) -> list[ScoredChunk]:
+def keyword_search(
+    question: str, *, db_url: str, version_id: str, top_k: int, sources: list[str] | None = None
+) -> list[ScoredChunk]:
     with session_scope(db_url) as s:
-        return pgvector.keyword_search(s, version_id, question, top_k)
+        return pgvector.keyword_search(s, version_id, question, top_k, sources)
 
 
 def rrf_fuse(ranked_lists: list[list[ScoredChunk]], rrf_k: int, top_k: int) -> list[ScoredChunk]:
@@ -48,10 +51,11 @@ def rrf_fuse(ranked_lists: list[list[ScoredChunk]], rrf_k: int, top_k: int) -> l
 
 def search(
     searched: SearchQueries | str, *, mode: str, db_url: str, version_id: str, embedder: OllamaEmbedder,
-    top_k: int, candidates: int, rrf_k: int,
+    top_k: int, candidates: int, rrf_k: int, filter_mode: str = "none",
 ) -> list[ScoredChunk]:
     """`searched` is the question itself, or what a query transform made of it (several queries,
-    HyDE passages). Every query and passage gives one ranked list; more than one list → RRF."""
+    HyDE passages). Every query and passage gives one ranked list; more than one list → RRF.
+With a metadata filter, every list only searches the publications the queries name."""
     if mode not in ("dense", "keyword", "hybrid"):
         raise ValueError(f"Unknown retrieval mode: {mode} (dense | keyword | hybrid)")
     if isinstance(searched, str):
@@ -59,7 +63,9 @@ def search(
     # Each list brings more candidates than we keep, so a chunk ranked 20th in one list
     # but 3rd in another can still make the final top_k.
     n = max(candidates, top_k)
-    where = dict(db_url=db_url, version_id=version_id, top_k=n)
+    sources = metadata_filter.sources_for(" ".join(searched.queries), mode=filter_mode, db_url=db_url)
+    annotate(metadata={"sources": sources})
+    where = dict(db_url=db_url, version_id=version_id, top_k=n, sources=sources)
     ranked_lists = []
     for query in searched.queries:
         if mode in ("dense", "hybrid"):

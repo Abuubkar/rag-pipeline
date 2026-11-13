@@ -64,6 +64,7 @@ class RetrievalConfig(BaseModel):
     rrf_k: int = 60         # hybrid: RRF smoothing constant
     query_transform: str = "none"  # none | rewrite | multi_query | hyde
     multi_queries: int = 3  # multi_query: how many extra queries the LLM writes
+    metadata_filter: str = "none"  # none | source (search only the publications the question names)
     rerank: str = "none"    # none | listwise (the LLM reorders the candidates after search)
     rerank_candidates: int = 20  # listwise: chunks search brings for the LLM to reorder
     rerank_passage_chars: int = 600  # listwise: each candidate is trimmed to this for the prompt

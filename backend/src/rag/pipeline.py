@@ -106,7 +106,7 @@ def _search_kwargs(c: Container, version: IndexVersion, embedder) -> dict:
     r = c.settings.retrieval
     top_k = r.top_k if r.rerank == "none" else max(r.rerank_candidates, r.top_k)
     return dict(mode=r.mode, db_url=c.db_url, version_id=version.id, embedder=embedder,
-                top_k=top_k, candidates=r.candidates, rrf_k=r.rrf_k)
+                top_k=top_k, candidates=r.candidates, rrf_k=r.rrf_k, filter_mode=r.metadata_filter)
 
 
 def _rerank_kwargs(c: Container, chat) -> dict:
@@ -159,7 +159,7 @@ def evaluate_retrieval(
     version = c.active_index()
     items = [i for i in dataset.sample(golden_set(c, split), limit) if i.answerable]
     ks = sorted({1, 3, r.top_k, 10})
-    mode = "-".join(m for m in (r.mode, r.query_transform, r.rerank) if m != "none")
+    mode = "-".join(m for m in (r.mode, r.query_transform, r.metadata_filter, r.rerank) if m != "none")
     run = runs.start(c.db_url, c.settings, "retrieval", mode, split, limit, version.id,
                      extra={"ks": ks, "embedder": version.manifest.dense.model_dump(),
                             "query_prompt": _query_prompt_label(c),
