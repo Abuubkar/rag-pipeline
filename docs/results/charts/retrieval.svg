@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 908 348" width="908" height="348" font-family='system-ui, -apple-system, "Segoe UI", sans-serif' role="img" aria-label="Retrieval: before and after">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 908 378" width="908" height="378" font-family='system-ui, -apple-system, "Segoe UI", sans-serif' role="img" aria-label="Retrieval: before and after">
 <style>
   .surface { fill: #fcfcfb; }
   .title { fill: #0b0b0b; font-weight: 600; font-size: 14px; }
@@ -23,7 +23,7 @@
     .bar-run { fill: #3987e5; }
   }
 </style>
-<rect class="surface" width="908" height="348" rx="8"/>
+<rect class="surface" width="908" height="378" rx="8"/>
 <text class="title" x="16" y="26">Retrieval: before and after</text>
 <text class="subtitle" x="16" y="44">Dev split, 451 answerable questions · gray = baseline, blue = later experiments</text>
 <text class="label" x="16" y="93.0">M2 · dense (baseline)</text>
@@ -34,14 +34,15 @@
 <text class="label" x="16" y="243.0">3.3 · query rewrite (hybrid)</text>
 <text class="label" x="16" y="273.0">3.3 · multi-query ×3 (hybrid)</text>
 <text class="label" x="16" y="303.0">3.3 · HyDE (hybrid)</text>
+<text class="label" x="16" y="333.0">3.5 · source filter (hybrid)</text>
 <text class="panel-title" x="226" y="62">recall@6</text>
-<line class="axis" x1="226.0" y1="70" x2="226.0" y2="314"/>
-<text class="tick" x="226.0" y="330" text-anchor="middle">0</text>
-<line class="grid" x1="284.0" y1="70" x2="284.0" y2="314"/>
-<text class="tick" x="284.0" y="330" text-anchor="middle">0.5</text>
-<line class="grid" x1="342.0" y1="70" x2="342.0" y2="314"/>
-<text class="tick" x="342.0" y="330" text-anchor="middle">1</text>
-<line class="ref" x1="291.1" y1="70" x2="291.1" y2="314"/>
+<line class="axis" x1="226.0" y1="70" x2="226.0" y2="344"/>
+<text class="tick" x="226.0" y="360" text-anchor="middle">0</text>
+<line class="grid" x1="284.0" y1="70" x2="284.0" y2="344"/>
+<text class="tick" x="284.0" y="360" text-anchor="middle">0.5</text>
+<line class="grid" x1="342.0" y1="70" x2="342.0" y2="344"/>
+<text class="tick" x="342.0" y="360" text-anchor="middle">1</text>
+<line class="ref" x1="291.1" y1="70" x2="291.1" y2="344"/>
 <path class="bar-baseline" d="M226.0,80.0 H287.1 Q291.1,80.0 291.1,84.0 V94.0 Q291.1,98.0 287.1,98.0 H226.0 Z"><title>M2 · dense (baseline) · recall@6 0.56</title></path>
 <text class="value" x="296.1" y="93.0">0.56</text>
 <path class="bar-run" d="M226.0,110.0 H277.9 Q281.9,110.0 281.9,114.0 V124.0 Q281.9,128.0 277.9,128.0 H226.0 Z"><title>3.1 · keyword only · recall@6 0.48 (-0.08 vs baseline)</title></path>
@@ -58,14 +59,16 @@
 <text class="value" x="297.6" y="273.0">0.57</text>
 <path class="bar-run" d="M226.0,290.0 H292.8 Q296.8,290.0 296.8,294.0 V304.0 Q296.8,308.0 292.8,308.0 H226.0 Z"><title>3.3 · HyDE (hybrid) · recall@6 0.61 (+0.05 vs baseline)</title></path>
 <text class="value" x="301.8" y="303.0">0.61</text>
+<path class="bar-run" d="M226.0,320.0 H298.5 Q302.5,320.0 302.5,324.0 V334.0 Q302.5,338.0 298.5,338.0 H226.0 Z"><title>3.5 · source filter (hybrid) · recall@6 0.66 (+0.10 vs baseline)</title></path>
+<text class="value" x="307.5" y="333.0">0.66</text>
 <text class="panel-title" x="398" y="62">fact recall</text>
-<line class="axis" x1="398.0" y1="70" x2="398.0" y2="314"/>
-<text class="tick" x="398.0" y="330" text-anchor="middle">0</text>
-<line class="grid" x1="456.0" y1="70" x2="456.0" y2="314"/>
-<text class="tick" x="456.0" y="330" text-anchor="middle">0.5</text>
-<line class="grid" x1="514.0" y1="70" x2="514.0" y2="314"/>
-<text class="tick" x="514.0" y="330" text-anchor="middle">1</text>
-<line class="ref" x1="448.9" y1="70" x2="448.9" y2="314"/>
+<line class="axis" x1="398.0" y1="70" x2="398.0" y2="344"/>
+<text class="tick" x="398.0" y="360" text-anchor="middle">0</text>
+<line class="grid" x1="456.0" y1="70" x2="456.0" y2="344"/>
+<text class="tick" x="456.0" y="360" text-anchor="middle">0.5</text>
+<line class="grid" x1="514.0" y1="70" x2="514.0" y2="344"/>
+<text class="tick" x="514.0" y="360" text-anchor="middle">1</text>
+<line class="ref" x1="448.9" y1="70" x2="448.9" y2="344"/>
 <path class="bar-baseline" d="M398.0,80.0 H444.9 Q448.9,80.0 448.9,84.0 V94.0 Q448.9,98.0 444.9,98.0 H398.0 Z"><title>M2 · dense (baseline) · fact recall 0.44</title></path>
 <text class="value" x="453.9" y="93.0">0.44</text>
 <path class="bar-run" d="M398.0,110.0 H434.9 Q438.9,110.0 438.9,114.0 V124.0 Q438.9,128.0 434.9,128.0 H398.0 Z"><title>3.1 · keyword only · fact recall 0.35 (-0.09 vs baseline)</title></path>
@@ -82,14 +85,16 @@
 <text class="value" x="452.6" y="273.0">0.43</text>
 <path class="bar-run" d="M398.0,290.0 H450.4 Q454.4,290.0 454.4,294.0 V304.0 Q454.4,308.0 450.4,308.0 H398.0 Z"><title>3.3 · HyDE (hybrid) · fact recall 0.49 (+0.05 vs baseline)</title></path>
 <text class="value" x="459.4" y="303.0">0.49</text>
+<path class="bar-run" d="M398.0,320.0 H457.3 Q461.3,320.0 461.3,324.0 V334.0 Q461.3,338.0 457.3,338.0 H398.0 Z"><title>3.5 · source filter (hybrid) · fact recall 0.55 (+0.11 vs baseline)</title></path>
+<text class="value" x="466.3" y="333.0">0.55</text>
 <text class="panel-title" x="570" y="62">MRR</text>
-<line class="axis" x1="570.0" y1="70" x2="570.0" y2="314"/>
-<text class="tick" x="570.0" y="330" text-anchor="middle">0</text>
-<line class="grid" x1="628.0" y1="70" x2="628.0" y2="314"/>
-<text class="tick" x="628.0" y="330" text-anchor="middle">0.5</text>
-<line class="grid" x1="686.0" y1="70" x2="686.0" y2="314"/>
-<text class="tick" x="686.0" y="330" text-anchor="middle">1</text>
-<line class="ref" x1="654.7" y1="70" x2="654.7" y2="314"/>
+<line class="axis" x1="570.0" y1="70" x2="570.0" y2="344"/>
+<text class="tick" x="570.0" y="360" text-anchor="middle">0</text>
+<line class="grid" x1="628.0" y1="70" x2="628.0" y2="344"/>
+<text class="tick" x="628.0" y="360" text-anchor="middle">0.5</text>
+<line class="grid" x1="686.0" y1="70" x2="686.0" y2="344"/>
+<text class="tick" x="686.0" y="360" text-anchor="middle">1</text>
+<line class="ref" x1="654.7" y1="70" x2="654.7" y2="344"/>
 <path class="bar-baseline" d="M570.0,80.0 H650.7 Q654.7,80.0 654.7,84.0 V94.0 Q654.7,98.0 650.7,98.0 H570.0 Z"><title>M2 · dense (baseline) · MRR 0.73</title></path>
 <text class="value" x="659.7" y="93.0">0.73</text>
 <path class="bar-run" d="M570.0,110.0 H633.3 Q637.3,110.0 637.3,114.0 V124.0 Q637.3,128.0 633.3,128.0 H570.0 Z"><title>3.1 · keyword only · MRR 0.58 (-0.15 vs baseline)</title></path>
@@ -106,14 +111,16 @@
 <text class="value" x="656.0" y="273.0">0.70</text>
 <path class="bar-run" d="M570.0,290.0 H653.7 Q657.7,290.0 657.7,294.0 V304.0 Q657.7,308.0 653.7,308.0 H570.0 Z"><title>3.3 · HyDE (hybrid) · MRR 0.76 (+0.03 vs baseline)</title></path>
 <text class="value" x="662.7" y="303.0">0.76</text>
+<path class="bar-run" d="M570.0,320.0 H661.7 Q665.7,320.0 665.7,324.0 V334.0 Q665.7,338.0 661.7,338.0 H570.0 Z"><title>3.5 · source filter (hybrid) · MRR 0.83 (+0.09 vs baseline)</title></path>
+<text class="value" x="670.7" y="333.0">0.83</text>
 <text class="panel-title" x="742" y="62">hit@6</text>
-<line class="axis" x1="742.0" y1="70" x2="742.0" y2="314"/>
-<text class="tick" x="742.0" y="330" text-anchor="middle">0</text>
-<line class="grid" x1="800.0" y1="70" x2="800.0" y2="314"/>
-<text class="tick" x="800.0" y="330" text-anchor="middle">0.5</text>
-<line class="grid" x1="858.0" y1="70" x2="858.0" y2="314"/>
-<text class="tick" x="858.0" y="330" text-anchor="middle">1</text>
-<line class="ref" x1="845.4" y1="70" x2="845.4" y2="314"/>
+<line class="axis" x1="742.0" y1="70" x2="742.0" y2="344"/>
+<text class="tick" x="742.0" y="360" text-anchor="middle">0</text>
+<line class="grid" x1="800.0" y1="70" x2="800.0" y2="344"/>
+<text class="tick" x="800.0" y="360" text-anchor="middle">0.5</text>
+<line class="grid" x1="858.0" y1="70" x2="858.0" y2="344"/>
+<text class="tick" x="858.0" y="360" text-anchor="middle">1</text>
+<line class="ref" x1="845.4" y1="70" x2="845.4" y2="344"/>
 <path class="bar-baseline" d="M742.0,80.0 H841.4 Q845.4,80.0 845.4,84.0 V94.0 Q845.4,98.0 841.4,98.0 H742.0 Z"><title>M2 · dense (baseline) · hit@6 0.89</title></path>
 <text class="value" x="850.4" y="93.0">0.89</text>
 <path class="bar-run" d="M742.0,110.0 H831.1 Q835.1,110.0 835.1,114.0 V124.0 Q835.1,128.0 831.1,128.0 H742.0 Z"><title>3.1 · keyword only · hit@6 0.80 (-0.09 vs baseline)</title></path>
@@ -130,4 +137,6 @@
 <text class="value" x="850.1" y="273.0">0.89</text>
 <path class="bar-run" d="M742.0,290.0 H844.2 Q848.2,290.0 848.2,294.0 V304.0 Q848.2,308.0 844.2,308.0 H742.0 Z"><title>3.3 · HyDE (hybrid) · hit@6 0.92 (+0.02 vs baseline)</title></path>
 <text class="value" x="853.2" y="303.0">0.92</text>
+<path class="bar-run" d="M742.0,320.0 H849.4 Q853.4,320.0 853.4,324.0 V334.0 Q853.4,338.0 849.4,338.0 H742.0 Z"><title>3.5 · source filter (hybrid) · hit@6 0.96 (+0.07 vs baseline)</title></path>
+<text class="value" x="858.4" y="333.0">0.96</text>
 </svg>

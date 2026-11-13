@@ -140,3 +140,47 @@ stays in the backlog.
 
 **Exercise:** set `RAG_RETRIEVAL__RERANK_CANDIDATES=10` and re-run with `--limit 100`. How much
 recall do you lose, and how much time do you save?
+
+## 5. Metadata filters (step 3.5, ≈ 1 h)
+**Learn:**
+- **Text vs metadata.** "As reported by TechCrunch and The Verge" names *publications*. They live
+  in `documents.source`, not in the chunk text, so neither embeddings nor full-text search can
+  use them. A SQL `WHERE source IN (...)` can. That is why multi-query hurt in step 3.3.
+- **Pre-filtering:** the WHERE runs *inside* the search, so the top 30 are the best chunks
+  *from those sources*. Filtering after search (post-filtering) can leave almost nothing.
+  For HNSW, `hnsw.iterative_scan` keeps scanning until enough rows pass the filter.
+- **How to get the filter from the question** (abstraction ladder):
+
+  | Rung | How | When real apps use it |
+  |---|---|---|
+  | UI facets | the user picks a source or date in a dropdown | most search products |
+  | **Rule-based match** (this step) | match a known, fixed list of values in the text | small, closed vocabularies |
+  | LLM self-query | the LLM writes a structured filter (LangChain `SelfQueryRetriever`) | open fields: dates, authors, ranges |
+
+- **Fail open:** if no source is named, no filter is applied. A hard filter that matches
+  wrongly removes the right answer, and a filter that matches nothing returns no candidates.
+
+**Code:** `retrieval/metadata_filter.py` (`match_sources`, `sources_for`), `pgvector.py::_source_filter`,
+and the `filter_mode` argument of `retrieval/search.py::search`.
+
+**Data check first:** 446 of 451 dev questions name at least one source exactly. In 33 of them,
+one gold article comes from a source the question does *not* name, so a hard filter caps them.
+
+**Result:** free (no LLM call, a WHERE clause) and the second-biggest gain so far:
+
+| Run | recall@6 | fact recall | MRR | per question vs hybrid |
+|---|--:|--:|--:|--:|
+| hybrid (451) | 0.61 | 0.48 | 0.76 | |
+| + source filter (451) | **0.66** | **0.55** | **0.83** | 63 better / 14 worse |
+| hybrid + listwise rerank (87) | 0.69 | 0.53 | 0.89 | |
+| + source filter (87) | 0.59 | 0.49 | 0.84 | |
+
+On the 87-question sample the filter alone (0.59) is still below rerank (0.69), but it costs
+milliseconds instead of 51 s. The 14 worse questions are mostly the "unnamed source" cases above.
+
+**Caveat:** MultiHop-RAG questions name their sources because they were generated from article
+metadata. Real users rarely do, so this gain is partly a benchmark artefact. The technique
+(pre-filtering on metadata) transfers; the size of the gain may not.
+
+**Exercise:** dates. 97 questions name a month ("published on October 7, 2023"). Add a
+`published_at` filter (± 1 day) and measure it. Do temporal questions gain?
