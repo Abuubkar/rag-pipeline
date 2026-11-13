@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 908 168" width="908" height="168" font-family='system-ui, -apple-system, "Segoe UI", sans-serif' role="img" aria-label="Retrieval: before and after">
+<style>
+  .surface { fill: #fcfcfb; }
+  .title { fill: #0b0b0b; font-weight: 600; font-size: 14px; }
+  .subtitle, .panel-title { fill: #52514e; font-size: 12px; }
+  .panel-title { font-weight: 600; }
+  .label { fill: #0b0b0b; font-size: 12px; }
+  .value, .tick { fill: #52514e; font-size: 11px; font-variant-numeric: tabular-nums; }
+  .value { paint-order: stroke; stroke: #fcfcfb; stroke-width: 4px; stroke-linejoin: round; }
+  .grid { stroke: #e1e0d9; stroke-width: 1; }
+  .axis { stroke: #c3c2b7; stroke-width: 1; }
+  .ref { stroke: #898781; stroke-width: 1; }
+  .bar-baseline { fill: #b5b3ac; }
+  .bar-run { fill: #2a78d6; }
+  @media (prefers-color-scheme: dark) {
+    .surface { fill: #1a1a19; }
+    .title, .label { fill: #f0efec; }
+    .subtitle, .panel-title, .value, .tick { fill: #c3c2b7; }
+    .value { stroke: #1a1a19; }
+    .grid { stroke: #2c2c2a; }
+    .axis { stroke: #383835; }
+    .bar-baseline { fill: #74726c; }
+    .bar-run { fill: #3987e5; }
+  }
+</style>
+<rect class="surface" width="908" height="168" rx="8"/>
+<text class="title" x="16" y="26">Retrieval: before and after</text>
+<text class="subtitle" x="16" y="44">Dev split, 87 answerable questions · gray = baseline, blue = later experiments</text>
+<text class="label" x="16" y="93.0">3.4 · hybrid (sample)</text>
+<text class="label" x="16" y="123.0">3.4 · hybrid + listwise rerank</text>
+<text class="panel-title" x="226" y="62">recall@6</text>
+<line class="axis" x1="226.0" y1="70" x2="226.0" y2="134"/>
+<text class="tick" x="226.0" y="150" text-anchor="middle">0</text>
+<line class="grid" x1="284.0" y1="70" x2="284.0" y2="134"/>
+<text class="tick" x="284.0" y="150" text-anchor="middle">0.5</text>
+<line class="grid" x1="342.0" y1="70" x2="342.0" y2="134"/>
+<text class="tick" x="342.0" y="150" text-anchor="middle">1</text>
+<line class="ref" x1="290.0" y1="70" x2="290.0" y2="134"/>
+<path class="bar-baseline" d="M226.0,80.0 H286.0 Q290.0,80.0 290.0,84.0 V94.0 Q290.0,98.0 286.0,98.0 H226.0 Z"><title>3.4 · hybrid (sample) · recall@6 0.55</title></path>
+<text class="value" x="295.0" y="93.0">0.55</text>
+<path class="bar-run" d="M226.0,110.0 H301.6 Q305.6,110.0 305.6,114.0 V124.0 Q305.6,128.0 301.6,128.0 H226.0 Z"><title>3.4 · hybrid + listwise rerank · recall@6 0.69 (+0.13 vs baseline)</title></path>
+<text class="value" x="310.6" y="123.0">0.69</text>
+<text class="panel-title" x="398" y="62">fact recall</text>
+<line class="axis" x1="398.0" y1="70" x2="398.0" y2="134"/>
+<text class="tick" x="398.0" y="150" text-anchor="middle">0</text>
+<line class="grid" x1="456.0" y1="70" x2="456.0" y2="134"/>
+<text class="tick" x="456.0" y="150" text-anchor="middle">0.5</text>
+<line class="grid" x1="514.0" y1="70" x2="514.0" y2="134"/>
+<text class="tick" x="514.0" y="150" text-anchor="middle">1</text>
+<line class="ref" x1="448.1" y1="70" x2="448.1" y2="134"/>
+<path class="bar-baseline" d="M398.0,80.0 H444.1 Q448.1,80.0 448.1,84.0 V94.0 Q448.1,98.0 444.1,98.0 H398.0 Z"><title>3.4 · hybrid (sample) · fact recall 0.43</title></path>
+<text class="value" x="453.1" y="93.0">0.43</text>
+<path class="bar-run" d="M398.0,110.0 H455.3 Q459.3,110.0 459.3,114.0 V124.0 Q459.3,128.0 455.3,128.0 H398.0 Z"><title>3.4 · hybrid + listwise rerank · fact recall 0.53 (+0.10 vs baseline)</title></path>
+<text class="value" x="464.3" y="123.0">0.53</text>
+<text class="panel-title" x="570" y="62">MRR</text>
+<line class="axis" x1="570.0" y1="70" x2="570.0" y2="134"/>
+<text class="tick" x="570.0" y="150" text-anchor="middle">0</text>
+<line class="grid" x1="628.0" y1="70" x2="628.0" y2="134"/>
+<text class="tick" x="628.0" y="150" text-anchor="middle">0.5</text>
+<line class="grid" x1="686.0" y1="70" x2="686.0" y2="134"/>
+<text class="tick" x="686.0" y="150" text-anchor="middle">1</text>
+<line class="ref" x1="659.6" y1="70" x2="659.6" y2="134"/>
+<path class="bar-baseline" d="M570.0,80.0 H655.6 Q659.6,80.0 659.6,84.0 V94.0 Q659.6,98.0 655.6,98.0 H570.0 Z"><title>3.4 · hybrid (sample) · MRR 0.77</title></path>
+<text class="value" x="664.6" y="93.0">0.77</text>
+<path class="bar-run" d="M570.0,110.0 H668.8 Q672.8,110.0 672.8,114.0 V124.0 Q672.8,128.0 668.8,128.0 H570.0 Z"><title>3.4 · hybrid + listwise rerank · MRR 0.89 (+0.11 vs baseline)</title></path>
+<text class="value" x="677.8" y="123.0">0.89</text>
+<text class="panel-title" x="742" y="62">hit@6</text>
+<line class="axis" x1="742.0" y1="70" x2="742.0" y2="134"/>
+<text class="tick" x="742.0" y="150" text-anchor="middle">0</text>
+<line class="grid" x1="800.0" y1="70" x2="800.0" y2="134"/>
+<text class="tick" x="800.0" y="150" text-anchor="middle">0.5</text>
+<line class="grid" x1="858.0" y1="70" x2="858.0" y2="134"/>
+<text class="tick" x="858.0" y="150" text-anchor="middle">1</text>
+<line class="ref" x1="847.3" y1="70" x2="847.3" y2="134"/>
+<path class="bar-baseline" d="M742.0,80.0 H843.3 Q847.3,80.0 847.3,84.0 V94.0 Q847.3,98.0 843.3,98.0 H742.0 Z"><title>3.4 · hybrid (sample) · hit@6 0.91</title></path>
+<text class="value" x="852.3" y="93.0">0.91</text>
+<path class="bar-run" d="M742.0,110.0 H848.7 Q852.7,110.0 852.7,114.0 V124.0 Q852.7,128.0 848.7,128.0 H742.0 Z"><title>3.4 · hybrid + listwise rerank · hit@6 0.95 (+0.05 vs baseline)</title></path>
+<text class="value" x="857.7" y="123.0">0.95</text>
+</svg>

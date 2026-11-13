@@ -97,3 +97,46 @@ HyDE helps a little on inference questions, at 8 s per query. `query_transform` 
 
 **Exercise:** change `multi_query.yaml` so the sub-queries leave out publication names and
 dates, then re-run with `--limit 100`. Does it close the gap?
+
+## 4. Listwise LLM rerank (step 3.4, ≈ 1.5 h)
+**Learn:**
+- **Two stages.** Search is fast but shallow: nomic embeds the question and each chunk
+  *separately* (a bi-encoder), so it never reads them together. A reranker reads the question
+  *with* each candidate, which is slower and sharper. So search fetches 20 candidates and the reranker
+  reorders them; the top 6 go to the LLM.
+- **Listwise (RankGPT-style):** gemma sees the question and all 20 passages at once (title,
+  source, date, text trimmed to 600 characters) and replies with an ordering such as `4 > 1 > 7 > …`.
+  Pointwise rerankers instead score each passage alone.
+- **Parse defensively.** LLM output is untrusted: invalid or repeated numbers are skipped, and
+  candidates it forgets are appended in their search order. A bad reply then degrades to plain
+  hybrid instead of crashing.
+- **The ceiling:** rerank only reorders. If no gold article is in the top 20, nothing changes, so
+  recall@20 of the search stage caps what rerank can achieve.
+- **Three-phase eval:** search every question with nomic → unload → rerank every question with gemma
+  → unload. Again, only one model is in memory at a time.
+
+**Code:** `retrieval/rerank.py` (`rerank`, `_trim`, `rerank_node`), `config/prompts/rerank.yaml`,
+and `pipeline.py::_rerank_all`. When rerank is on, `_search_kwargs` raises `top_k` to `rerank_candidates`.
+
+**Debug:** run one question both ways and compare the sources:
+`RAG_RETRIEVAL__RERANK=listwise uv run main.py ask "..."` against the same command without the variable.
+
+**Result:** the biggest gain in Milestone 3 so far. It was measured on the 87-question sample, because
+it costs **≈ 51 s per question** (75 min for the sample):
+
+| Run (87 questions) | recall@6 | fact recall | MRR | hit@1 |
+|---|--:|--:|--:|--:|
+| hybrid | 0.55 | 0.43 | 0.77 | 0.68 |
+| hybrid + listwise rerank | **0.69** | **0.53** | **0.89** | **0.84** |
+
+Per question: 33 better, 3 worse, 51 the same. Inference questions gain the most (recall@6
+0.41 → 0.58), where the answer depends on reading the passage, not on matching words. Context
+tokens stay about the same (≈ 2,800), so the gain is better ordering, not more text.
+
+The trade-off is latency: 51 s added to every `ask` on a laptop is too slow for interactive use.
+`rerank` therefore stays `none` by default. It is on for offline evals and for answer quality
+experiments. A small cross-encoder (e.g. `bge-reranker`) is the usual production compromise and
+stays in the backlog.
+
+**Exercise:** set `RAG_RETRIEVAL__RERANK_CANDIDATES=10` and re-run with `--limit 100`. How much
+recall do you lose, and how much time do you save?

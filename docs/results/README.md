@@ -36,6 +36,24 @@
 | 3.3 · multi-query ×3 (hybrid) | 0.67 | 0.46 | 0.60 |
 | 3.3 · HyDE (hybrid) | 0.69 | 0.50 | 0.65 |
 
+### Sample (for slow experiments): 87 questions
+
+![Retrieval before and after, 87 questions](charts/retrieval-87.svg)
+
+| Experiment | recall@6 | Δ | fact recall | Δ | MRR | Δ | hit@6 | Δ | context tokens | run | commit |
+|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|---|---|
+| 3.4 · hybrid (sample) | 0.55 | — | 0.43 | — | 0.77 | — | 0.91 | — | 2,862 | `retrieval-hybrid-20261113-081133` | `cb27a64` |
+| 3.4 · hybrid + listwise rerank | 0.69 | +0.13 | 0.53 | +0.10 | 0.89 | +0.11 | 0.95 | +0.05 | 2,817 | `retrieval-hybrid-listwise-20261113-081204` | `cb27a64` |
+
+*Context tokens* = average tokens in the top 6 chunks, i.e. what the LLM reads. Compare chunkers at a similar budget: more text can raise recall without better chunking.
+
+**recall@6 by question type**
+
+| Experiment | comparison | inference | temporal |
+|---|--:|--:|--:|
+| 3.4 · hybrid (sample) | 0.65 | 0.41 | 0.65 |
+| 3.4 · hybrid + listwise rerank | 0.75 | 0.58 | 0.76 |
+
 ## Answers
 
 ![Answer accuracy before and after](charts/answers.svg)
