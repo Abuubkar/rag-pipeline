@@ -12,6 +12,8 @@
   .ref { stroke: #898781; stroke-width: 1; }
   .bar-baseline { fill: #b5b3ac; }
   .bar-run { fill: #2a78d6; }
+  .ci-real { stroke: #2a78d6; fill: #2a78d6; }
+  .ci-noise { stroke: #898781; fill: #fcfcfb; }
   @media (prefers-color-scheme: dark) {
     .surface { fill: #1a1a19; }
     .title, .label { fill: #f0efec; }
@@ -21,6 +23,8 @@
     .axis { stroke: #383835; }
     .bar-baseline { fill: #74726c; }
     .bar-run { fill: #3987e5; }
+    .ci-real { stroke: #3987e5; fill: #3987e5; }
+    .ci-noise { stroke: #898781; fill: #1a1a19; }
   }
 </style>
 <rect class="surface" width="955" height="168" rx="8"/>

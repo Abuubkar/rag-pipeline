@@ -1,13 +1,15 @@
 """docs/results: before/after tables and charts, generated from the labelled eval runs.
 
 The first labelled run of each kind is the baseline ("before"); every later one shows its delta
-against it. Re-run `main.py eval report` after labelling a run; never edit the output by hand.
+against it. Retrieval runs are also compared, question by question, with the *reference* run
+(the current default setup) using paired bootstrap confidence intervals (evaluation/compare.py). Re-run `main.py eval report` after labelling a run; never edit the output by hand.
 """
 
 from pathlib import Path
 
 from rag.domain.models import EvalRun
-from rag.evaluation.charts import small_multiples
+from rag.evaluation.charts import forest, small_multiples
+from rag.evaluation.compare import LEVEL, RESAMPLES, compare
 
 QUESTION_TYPES = ["comparison_query", "inference_query", "temporal_query", "null_query"]
 _HEADER = """# Results
@@ -37,7 +39,8 @@ def _short(qtype: str) -> str:
     return qtype.removesuffix("_query")
 
 
-def _retrieval_section(runs: list[EvalRun], charts_dir: Path) -> str:
+def _retrieval_section(runs: list[EvalRun], charts_dir: Path, results: dict[str, dict],
+                       reference: tuple[str, str]) -> str:
     """One table + chart per question count: runs on the full dev split and runs on a smaller
     sample (slow experiments) are never compared with each other."""
     if not runs:
@@ -47,9 +50,10 @@ def _retrieval_section(runs: list[EvalRun], charts_dir: Path) -> str:
         groups.setdefault(run.summary["all"]["questions"], []).append(run)  # type: ignore[index]
     sections = ["## Retrieval\n"]
     for i, (n, group) in enumerate(sorted(groups.items(), reverse=True)):
-        chart = "retrieval.svg" if i == 0 else f"retrieval-{n}.svg"
+        suffix = "" if i == 0 else f"-{n}"
         heading = "All answerable dev questions" if i == 0 else "Sample (for slow experiments)"
-        sections.append(_retrieval_group(group, charts_dir, chart, f"### {heading}: {n} questions"))
+        sections.append(_retrieval_group(group, charts_dir, f"retrieval{suffix}.svg", f"### {heading}: {n} questions"))
+        sections.append(_ci_group(group, charts_dir, f"ci{suffix}.svg", results, reference))
     return "\n".join(sections)
 
 
@@ -89,6 +93,50 @@ def _retrieval_group(runs: list[EvalRun], charts_dir: Path, chart: str, heading:
     return "\n".join(lines) + "\n"
 
 
+def _ci_group(runs: list[EvalRun], charts_dir: Path, chart: str, results: dict[str, dict],
+              reference: tuple[str, str]) -> str:
+    """Paired 95% CIs of every run vs the reference: the plain default mode on the active index
+    (falls back to the group's first run)."""
+    mode, index = reference
+    ref = next((r for r in runs if r.mode == mode and r.index_version_id == index), runs[0])
+    others = [r for r in runs if r is not ref]
+    if not others:
+        return ""
+    k = ref.config["retrieval"]["top_k"]
+    metrics = [f"recall@{k}", "fact_recall", "mrr"]
+    comparisons = {r.id: compare(results[ref.id], results[r.id], metrics) for r in others}
+    n = ref.summary["all"]["questions"]  # type: ignore[index]
+    (charts_dir / chart).write_text(forest(
+        f"Is the change real? Paired {LEVEL:.0%} CIs vs {ref.label}",
+        f"{n} questions · dot = mean change per question, whisker = {LEVEL:.0%} CI · "
+        "filled blue = excludes 0, hollow gray = could be noise",
+        [r.label or r.id for r in others], metrics,
+        [{c.metric: (c.delta, c.low, c.high) for c in comparisons[r.id]} for r in others],
+    ))
+
+    def cell(c) -> str:
+        text = f"{c.delta:+.3f} [{c.low:+.3f}, {c.high:+.3f}]".replace("-", "−")
+        return f"**{text}**" if c.significant else text
+
+    lines = [
+        f"**Is the change real?** Paired {LEVEL:.0%} confidence intervals vs **{ref.label}** "
+        f"(the current default setup)",
+        "",
+        f"![Paired confidence intervals, {n} questions](charts/{chart})",
+        "",
+        f"| Experiment | recall@{k} Δ [{LEVEL:.0%} CI] | fact recall Δ [CI] | MRR Δ [CI] | better / worse (recall@{k}) |",
+        "|---|--:|--:|--:|--:|",
+    ]
+    for run in others:
+        cs = comparisons[run.id]
+        lines.append(f"| {run.label} | " + " | ".join(cell(c) for c in cs) + f" | {cs[0].better} / {cs[0].worse} |")
+    lines += ["", f"Each question's score in the experiment minus its score in the reference, averaged; the CI "
+              f"comes from {RESAMPLES:,} bootstrap resamples of the questions. **Bold** = the interval excludes 0, "
+              f"so the change is unlikely to be luck on these questions. With this many comparisons, expect about "
+              f"1 in 20 to look real by chance.", ""]
+    return "\n".join(lines)
+
+
 def _answers_section(runs: list[EvalRun], charts_dir: Path) -> str:
     if not runs:
         return "## Answers\n\nNo labelled answer runs yet.\n"
@@ -119,13 +167,16 @@ def _answers_section(runs: list[EvalRun], charts_dir: Path) -> str:
     return "\n".join(lines) + "\n"
 
 
-def write_report(results_dir: Path, retrieval_runs: list[EvalRun], answer_runs: list[EvalRun]) -> Path:
+def write_report(results_dir: Path, retrieval_runs: list[EvalRun], answer_runs: list[EvalRun],
+                 retrieval_results: dict[str, dict], reference: tuple[str, str]) -> Path:
+    """retrieval_results: run id → item_id → scores. reference: (mode, index version id) of the
+    current default setup, which every retrieval run is compared with."""
     charts_dir = results_dir / "charts"
     charts_dir.mkdir(parents=True, exist_ok=True)
     readme = results_dir / "README.md"
     readme.write_text("\n".join([
         _HEADER,
-        _retrieval_section(retrieval_runs, charts_dir),
+        _retrieval_section(retrieval_runs, charts_dir, retrieval_results, reference),
         _answers_section(answer_runs, charts_dir),
         "`*` after a commit = the run started with uncommitted changes.",
         "",

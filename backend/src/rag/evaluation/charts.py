@@ -8,6 +8,11 @@ docs/results/README.md carry the meaning, never color alone).
 
 Dark mode: the SVG has its own light/dark colors via prefers-color-scheme, so it reads well on
 GitHub in either theme. Hovering a bar (when the SVG is opened directly) shows a <title> tooltip.
+
+`forest` is the confidence-interval version: one dot (the mean improvement) with a whisker (its
+95% CI) per experiment, around a zero line. Filled blue = the interval excludes 0 (a real
+change); hollow gray = it crosses 0 (could be noise). The whisker crossing the zero line says
+the same thing without color.
 """
 
 from html import escape
@@ -26,6 +31,8 @@ _STYLE = """
   .ref { stroke: #898781; stroke-width: 1; }
   .bar-baseline { fill: #b5b3ac; }
   .bar-run { fill: #2a78d6; }
+  .ci-real { stroke: #2a78d6; fill: #2a78d6; }
+  .ci-noise { stroke: #898781; fill: #fcfcfb; }
   @media (prefers-color-scheme: dark) {
     .surface { fill: #1a1a19; }
     .title, .label { fill: #f0efec; }
@@ -35,6 +42,8 @@ _STYLE = """
     .axis { stroke: #383835; }
     .bar-baseline { fill: #74726c; }
     .bar-run { fill: #3987e5; }
+    .ci-real { stroke: #3987e5; fill: #3987e5; }
+    .ci-noise { stroke: #898781; fill: #1a1a19; }
   }
 """
 
@@ -102,5 +111,57 @@ def small_multiples(
             out.append(f'<path class="{cls}" d="{_bar_path(x0, y, w, _BAR)}">'
                        f"<title>{escape(label)} · {_NAMES.get(metric, metric)} {v:.2f}{delta}</title></path>")
             out.append(f'<text class="value" x="{x0 + w + 5:.1f}" y="{y + _BAR / 2 + 4:.1f}">{v:.2f}</text>')
+    out.append("</svg>")
+    return "\n".join(out)
+
+
+def forest(
+    title: str, subtitle: str, labels: list[str], metrics: list[str],
+    intervals: list[dict[str, tuple[float, float, float]]],
+) -> str:
+    """intervals[i][metric] = (delta, low, high) for experiment labels[i] vs the reference."""
+    bounds = [abs(v) for row in intervals for (_, lo, hi) in row.values() for v in (lo, hi)]
+    reach = max(0.05, -(-max(bounds, default=0.05) // 0.05) * 0.05)  # round up to a 0.05 step
+    panel_w = 240 if len(metrics) <= 3 else _PANEL_W  # intervals are narrow: give them room
+    plot_w = panel_w - _VALUE_ROOM - 8
+    width = _PAD + _LABEL_W + len(metrics) * (panel_w + _GAP) - _GAP + _PAD
+    height = _TOP + len(labels) * _ROW + _BOTTOM
+    out = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" width="{width}" '
+        f'height="{height}" font-family=\'{_FONT}\' role="img" aria-label="{escape(title)}">',
+        f"<style>{_STYLE}</style>",
+        f'<rect class="surface" width="{width}" height="{height}" rx="8"/>',
+        f'<text class="title" x="{_PAD}" y="26">{escape(title)}</text>',
+        f'<text class="subtitle" x="{_PAD}" y="44">{escape(subtitle)}</text>',
+    ]
+    for i, label in enumerate(labels):
+        y = _TOP + i * _ROW + _ROW / 2 + 4
+        out.append(f'<text class="label" x="{_PAD}" y="{y:.1f}">{escape(label)}</text>')
+    for m, metric in enumerate(metrics):
+        x0 = _PAD + _LABEL_W + m * (panel_w + _GAP)
+        bottom = _TOP + len(labels) * _ROW
+        def sx(v: float) -> float:
+            return x0 + (v + reach) / (2 * reach) * plot_w
+        out.append(f'<text class="panel-title" x="{x0}" y="{_TOP - 12}">{escape(_NAMES.get(metric, metric))}</text>')
+        for tick in (-reach, 0, reach):
+            out.append(f'<line class="{"ref" if tick == 0 else "grid"}" x1="{sx(tick):.1f}" y1="{_TOP - 4}" '
+                       f'x2="{sx(tick):.1f}" y2="{bottom}"/>')
+            text = "0" if tick == 0 else f"{tick:+.2f}".replace("-", "−")
+            out.append(f'<text class="tick" x="{sx(tick):.1f}" y="{bottom + 16}" text-anchor="middle">{text}</text>')
+        for i, (label, row) in enumerate(zip(labels, intervals)):
+            if metric not in row:
+                continue
+            delta, lo, hi = row[metric]
+            cy = _TOP + i * _ROW + _ROW / 2
+            cls = "ci-real" if lo > 0 or hi < 0 else "ci-noise"
+            tip = f"{escape(label)} · {_NAMES.get(metric, metric)} {delta:+.3f} (95% CI {lo:+.3f} to {hi:+.3f})"
+            caps = "".join(f'<line x1="{sx(v):.1f}" y1="{cy - 5:.1f}" x2="{sx(v):.1f}" y2="{cy + 5:.1f}" '
+                           f'stroke-width="2"/>' for v in (lo, hi))
+            out.append(f'<g class="{cls}"><title>{tip}</title>'
+                       f'<line x1="{sx(lo):.1f}" y1="{cy:.1f}" x2="{sx(hi):.1f}" y2="{cy:.1f}" stroke-width="2"/>'
+                       f'{caps}<circle cx="{sx(delta):.1f}" cy="{cy:.1f}" r="3.5" stroke-width="2"/></g>')
+            # values in one right-aligned column per panel, clear of the dots and the zero line
+            out.append(f'<text class="value" x="{x0 + panel_w:.1f}" y="{cy + 4:.1f}" text-anchor="end">'
+                       f'{f"{delta:+.2f}".replace("-", "−")}</text>')
     out.append("</svg>")
     return "\n".join(out)

@@ -65,3 +65,9 @@ def set_label(db_url: str, run_id: str, label: str | None) -> bool:
 def labelled(db_url: str, kind: str) -> list[EvalRun]:
     with session_scope(db_url) as s:
         return eval_registry.labelled_runs(s, kind)
+
+
+def results(db_url: str, run_id: str) -> dict[str, dict]:
+    """item_id → that question's stored scores, for paired comparisons."""
+    with session_scope(db_url) as s:
+        return eval_registry.get_results(s, run_id)

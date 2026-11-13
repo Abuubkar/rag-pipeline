@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1006 168" width="1006" height="168" font-family='system-ui, -apple-system, "Segoe UI", sans-serif' role="img" aria-label="Is the change real? Paired 95% CIs vs 3.4 · hybrid (sample)">
+<style>
+  .surface { fill: #fcfcfb; }
+  .title { fill: #0b0b0b; font-weight: 600; font-size: 14px; }
+  .subtitle, .panel-title { fill: #52514e; font-size: 12px; }
+  .panel-title { font-weight: 600; }
+  .label { fill: #0b0b0b; font-size: 12px; }
+  .value, .tick { fill: #52514e; font-size: 11px; font-variant-numeric: tabular-nums; }
+  .value { paint-order: stroke; stroke: #fcfcfb; stroke-width: 4px; stroke-linejoin: round; }
+  .grid { stroke: #e1e0d9; stroke-width: 1; }
+  .axis { stroke: #c3c2b7; stroke-width: 1; }
+  .ref { stroke: #898781; stroke-width: 1; }
+  .bar-baseline { fill: #b5b3ac; }
+  .bar-run { fill: #2a78d6; }
+  .ci-real { stroke: #2a78d6; fill: #2a78d6; }
+  .ci-noise { stroke: #898781; fill: #fcfcfb; }
+  @media (prefers-color-scheme: dark) {
+    .surface { fill: #1a1a19; }
+    .title, .label { fill: #f0efec; }
+    .subtitle, .panel-title, .value, .tick { fill: #c3c2b7; }
+    .value { stroke: #1a1a19; }
+    .grid { stroke: #2c2c2a; }
+    .axis { stroke: #383835; }
+    .bar-baseline { fill: #74726c; }
+    .bar-run { fill: #3987e5; }
+    .ci-real { stroke: #3987e5; fill: #3987e5; }
+    .ci-noise { stroke: #898781; fill: #1a1a19; }
+  }
+</style>
+<rect class="surface" width="1006" height="168" rx="8"/>
+<text class="title" x="16" y="26">Is the change real? Paired 95% CIs vs 3.4 · hybrid (sample)</text>
+<text class="subtitle" x="16" y="44">87 questions · dot = mean change per question, whisker = 95% CI · filled blue = excludes 0, hollow gray = could be noise</text>
+<text class="label" x="16" y="93.0">3.4 · hybrid + listwise rerank</text>
+<text class="label" x="16" y="123.0">3.5 · source filter (sample)</text>
+<text class="panel-title" x="226" y="62">recall@6</text>
+<line class="grid" x1="226.0" y1="70" x2="226.0" y2="134"/>
+<text class="tick" x="226.0" y="150" text-anchor="middle">−0.20</text>
+<line class="ref" x1="325.0" y1="70" x2="325.0" y2="134"/>
+<text class="tick" x="325.0" y="150" text-anchor="middle">0</text>
+<line class="grid" x1="424.0" y1="70" x2="424.0" y2="134"/>
+<text class="tick" x="424.0" y="150" text-anchor="middle">+0.20</text>
+<g class="ci-real"><title>3.4 · hybrid + listwise rerank · recall@6 +0.134 (95% CI +0.088 to +0.180)</title><line x1="368.6" y1="89.0" x2="414.1" y2="89.0" stroke-width="2"/><line x1="368.6" y1="84.0" x2="368.6" y2="94.0" stroke-width="2"/><line x1="414.1" y1="84.0" x2="414.1" y2="94.0" stroke-width="2"/><circle cx="391.4" cy="89.0" r="3.5" stroke-width="2"/></g>
+<text class="value" x="466.0" y="93.0" text-anchor="end">+0.13</text>
+<g class="ci-real"><title>3.5 · source filter (sample) · recall@6 +0.040 (95% CI +0.011 to +0.077)</title><line x1="330.2" y1="119.0" x2="362.9" y2="119.0" stroke-width="2"/><line x1="330.2" y1="114.0" x2="330.2" y2="124.0" stroke-width="2"/><line x1="362.9" y1="114.0" x2="362.9" y2="124.0" stroke-width="2"/><circle cx="344.9" cy="119.0" r="3.5" stroke-width="2"/></g>
+<text class="value" x="466.0" y="123.0" text-anchor="end">+0.04</text>
+<text class="panel-title" x="488" y="62">fact recall</text>
+<line class="grid" x1="488.0" y1="70" x2="488.0" y2="134"/>
+<text class="tick" x="488.0" y="150" text-anchor="middle">−0.20</text>
+<line class="ref" x1="587.0" y1="70" x2="587.0" y2="134"/>
+<text class="tick" x="587.0" y="150" text-anchor="middle">0</text>
+<line class="grid" x1="686.0" y1="70" x2="686.0" y2="134"/>
+<text class="tick" x="686.0" y="150" text-anchor="middle">+0.20</text>
+<g class="ci-real"><title>3.4 · hybrid + listwise rerank · fact recall +0.097 (95% CI +0.048 to +0.146)</title><line x1="610.7" y1="89.0" x2="659.1" y2="89.0" stroke-width="2"/><line x1="610.7" y1="84.0" x2="610.7" y2="94.0" stroke-width="2"/><line x1="659.1" y1="84.0" x2="659.1" y2="94.0" stroke-width="2"/><circle cx="634.9" cy="89.0" r="3.5" stroke-width="2"/></g>
+<text class="value" x="728.0" y="93.0" text-anchor="end">+0.10</text>
+<g class="ci-real"><title>3.5 · source filter (sample) · fact recall +0.055 (95% CI +0.021 to +0.090)</title><line x1="597.4" y1="119.0" x2="631.6" y2="119.0" stroke-width="2"/><line x1="597.4" y1="114.0" x2="597.4" y2="124.0" stroke-width="2"/><line x1="631.6" y1="114.0" x2="631.6" y2="124.0" stroke-width="2"/><circle cx="614.0" cy="119.0" r="3.5" stroke-width="2"/></g>
+<text class="value" x="728.0" y="123.0" text-anchor="end">+0.05</text>
+<text class="panel-title" x="750" y="62">MRR</text>
+<line class="grid" x1="750.0" y1="70" x2="750.0" y2="134"/>
+<text class="tick" x="750.0" y="150" text-anchor="middle">−0.20</text>
+<line class="ref" x1="849.0" y1="70" x2="849.0" y2="134"/>
+<text class="tick" x="849.0" y="150" text-anchor="middle">0</text>
+<line class="grid" x1="948.0" y1="70" x2="948.0" y2="134"/>
+<text class="tick" x="948.0" y="150" text-anchor="middle">+0.20</text>
+<g class="ci-real"><title>3.4 · hybrid + listwise rerank · MRR +0.114 (95% CI +0.048 to +0.185)</title><line x1="872.8" y1="89.0" x2="940.6" y2="89.0" stroke-width="2"/><line x1="872.8" y1="84.0" x2="872.8" y2="94.0" stroke-width="2"/><line x1="940.6" y1="84.0" x2="940.6" y2="94.0" stroke-width="2"/><circle cx="905.5" cy="89.0" r="3.5" stroke-width="2"/></g>
+<text class="value" x="990.0" y="93.0" text-anchor="end">+0.11</text>
+<g class="ci-real"><title>3.5 · source filter (sample) · MRR +0.067 (95% CI +0.026 to +0.114)</title><line x1="861.6" y1="119.0" x2="905.5" y2="119.0" stroke-width="2"/><line x1="861.6" y1="114.0" x2="861.6" y2="124.0" stroke-width="2"/><line x1="905.5" y1="114.0" x2="905.5" y2="124.0" stroke-width="2"/><circle cx="882.0" cy="119.0" r="3.5" stroke-width="2"/></g>
+<text class="value" x="990.0" y="123.0" text-anchor="end">+0.07</text>
+</svg>

@@ -332,5 +332,8 @@ def label_eval_run(c: Container, run_id: str, label: str | None) -> bool:
 
 
 def write_results(c: Container):
-    return report.write_report(RESULTS_DIR, runs.labelled(c.db_url, "retrieval"),
-                               runs.labelled(c.db_url, "answers"))
+    retrieval_runs = runs.labelled(c.db_url, "retrieval")
+    results = {r.id: runs.results(c.db_url, r.id) for r in retrieval_runs}
+    reference = (c.settings.retrieval.mode, c.active_index().id)  # plain default mode, active index
+    return report.write_report(RESULTS_DIR, retrieval_runs, runs.labelled(c.db_url, "answers"),
+                               results, reference)

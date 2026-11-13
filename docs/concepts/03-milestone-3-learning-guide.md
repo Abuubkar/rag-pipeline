@@ -227,3 +227,38 @@ answer accuracy at 1,810 vs 2,865 tokens. Until then, `compression` stays `none`
 **Exercise:** try `RAG_RETRIEVAL__COMPRESSION_KEEP=0.3`. At what point does fact recall drop
 sharply? Then compress with the question's *sub-queries* (multi-query) instead of the question.
 Do more fact sentences survive?
+
+## 7. Is the difference real? Paired confidence intervals (step 3.7, ≈ 1 h)
+**Learn:**
+- **Noise.** 451 questions are a sample. Run the same comparison on another 451 and a +0.01 gap
+  can flip sign. A confidence interval says how big the gap could plausibly be.
+- **Paired, not unpaired.** Both runs answered the *same* questions, so subtract per question
+  first. That removes "this question is just hard" (the biggest source of spread), so much
+  smaller real gaps become visible.
+- **Bootstrap:** resample the 451 per-question differences with replacement, take the mean, and
+  repeat 5,000 times. The 2.5th to 97.5th percentile of those means is the 95% CI. No normality
+  assumption and no formula, and it works for any metric (recall, MRR, fact recall).
+- **Reading it:** if the CI excludes 0, the change is real *for this corpus and question style*.
+  With 30 comparisons, about 1 or 2 will exclude 0 by luck, so a CI that only just excludes 0 is weak evidence.
+- **Reference = current default** (plain hybrid on the active index), not the M2 baseline.
+  Every Milestone 3 decision is "does this beat what we ship now?".
+
+**Code:** `evaluation/compare.py` (`paired_bootstrap`, `compare`), the `forest` chart in `evaluation/charts.py`,
+and `report.py::_ci_group`. Per-question scores come from `eval_results` (`runs.results`).
+
+**Result** (vs hybrid; the full tables and forest charts are in `docs/results/`):
+
+| Change | recall@6 Δ [95% CI] | Verdict |
+|---|--:|---|
+| dense instead of hybrid | −0.045 [−0.068, −0.022] | hybrid is really better |
+| semantic / recursive chunks | +0.005 / +0.001 (CIs span 0) | a real tie; MRR +0.02 for semantic only just excludes 0 |
+| rewrite / multi-query | −0.041 / −0.032 | really worse |
+| HyDE | +0.004 [−0.011, +0.020] | no effect |
+| **source filter** | **+0.054 [+0.037, +0.072]** | real, and free |
+| **listwise rerank** (87) | **+0.134 [+0.088, +0.180]** | real and large, but 51 s per question |
+| compression keep 0.5 | fact recall −0.037 [−0.048, −0.026] | a real loss of facts; answer impact unknown |
+
+The decisions are recorded in ADR 0011.
+
+**Exercise:** compare two runs of the *same* config (run `eval retrieval` twice). Every CI
+should contain 0, and the deltas should be exactly 0. Why exactly? (Hint: what in retrieval is random?)
