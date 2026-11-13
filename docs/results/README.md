@@ -21,6 +21,8 @@
 | 3.3 · multi-query ×3 (hybrid) | 0.57 | +0.01 | 0.43 | −0.01 | 0.70 | −0.03 | 0.89 | 0.00 | 2,866 | `retrieval-hybrid-multi_query-20261111-185440` | `72dd224` |
 | 3.3 · HyDE (hybrid) | 0.61 | +0.05 | 0.49 | +0.05 | 0.76 | +0.03 | 0.92 | +0.02 | 2,823 | `retrieval-hybrid-hyde-20261111-193439` | `72dd224` |
 | 3.5 · source filter (hybrid) | 0.66 | +0.10 | 0.55 | +0.11 | 0.83 | +0.09 | 0.96 | +0.07 | 2,853 | `retrieval-hybrid-source-20261113-094137` | `21d29b4` |
+| 3.6 · compression keep 0.5 (hybrid) | 0.61 | +0.04 | 0.45 | +0.01 | 0.76 | +0.02 | 0.91 | +0.02 | 1,810 | `retrieval-hybrid-embedding-20261113-095517` | `9ccd429` |
+| 3.6 · compression keep 0.7 (hybrid) | 0.61 | +0.04 | 0.47 | +0.03 | 0.76 | +0.02 | 0.91 | +0.02 | 2,360 | `retrieval-hybrid-embedding-20261113-100818` | `9ccd429` |
 
 *Context tokens* = average tokens in the top 6 chunks, i.e. what the LLM reads. Compare chunkers at a similar budget: more text can raise recall without better chunking.
 
@@ -37,6 +39,8 @@
 | 3.3 · multi-query ×3 (hybrid) | 0.67 | 0.46 | 0.60 |
 | 3.3 · HyDE (hybrid) | 0.69 | 0.50 | 0.65 |
 | 3.5 · source filter (hybrid) | 0.76 | 0.50 | 0.73 |
+| 3.6 · compression keep 0.5 (hybrid) | 0.70 | 0.47 | 0.66 |
+| 3.6 · compression keep 0.7 (hybrid) | 0.70 | 0.47 | 0.66 |
 
 ### Sample (for slow experiments): 87 questions
 

@@ -184,3 +184,46 @@ metadata. Real users rarely do, so this gain is partly a benchmark artefact. The
 
 **Exercise:** dates. 97 questions name a month ("published on October 7, 2023"). Add a
 `published_at` filter (± 1 day) and measure it. Do temporal questions gain?
+
+## 6. Context compression (step 3.6, ≈ 1 h)
+**Learn:**
+- **Why compress?** Every retrieved token is paid for in prompt length, latency and LLM
+  attention. Models also use facts in the middle of a long context less well ("lost in the
+  middle"). Compression keeps the same chunks but sends less text.
+- **Where it sits:** after search and rerank, on the top_k chunks only. It changes *text*, not
+  *which articles*, so recall, hit and MRR stay the same. Fact recall and context tokens move.
+- **The ladder:**
+
+  | Rung | How | Cost per question |
+  |---|---|---|
+  | Fewer chunks (`top_k`) | drop whole chunks | free |
+  | **Embedding sentence filter** (this step) | keep the sentences most similar to the question | 1 batch embed call |
+  | LLM extractor (LangChain `LLMChainExtractor`) | the LLM copies out the relevant sentences | 1 LLM call per chunk |
+  | Token-level (LLMLingua) | a small LM deletes low-information tokens | a second model |
+
+- **Global, not per chunk:** the kept share is chosen across all top_k chunks, so an off-topic chunk
+  shrinks a lot and a focused one keeps most of its text. Each chunk keeps at least one sentence,
+  so the citation numbers `[n]` don't change.
+
+**Code:** `retrieval/compress.py` (`compress`, `compress_node`), `pipeline.py::_compress_all`
+(a fourth eval phase, with nomic only), and `packages/chunking/langchain.py::count_tokens`.
+
+**Result** (451 questions, about 1.7 s per question):
+
+| Run | fact recall | context tokens | facts per 1k tokens |
+|---|--:|--:|--:|
+| hybrid | 0.48 | 2,865 | 0.17 |
+| keep 0.7 | 0.47 | 2,360 (−18%) | 0.20 |
+| keep 0.5 | 0.45 | 1,810 (−37%) | 0.25 |
+
+Halving the sentences cuts a third of the tokens but loses some facts: about 6% of the facts
+retrieval had found. A fact sentence often doesn't look like the question. In multi-hop
+questions, the question mentions both articles, but each fact sentence talks about only one.
+
+Whether the smaller context gives *better answers* is something retrieval metrics can't tell.
+That needs the answer eval (the 100-question run planned for later), which can compare
+answer accuracy at 1,810 vs 2,865 tokens. Until then, `compression` stays `none`.
+
+**Exercise:** try `RAG_RETRIEVAL__COMPRESSION_KEEP=0.3`. At what point does fact recall drop
+sharply? Then compress with the question's *sub-queries* (multi-query) instead of the question.
+Do more fact sentences survive?
