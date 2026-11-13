@@ -15,7 +15,7 @@ answerable dev questions; rerank used an 87-question sample because it is slow.
 | `retrieval.mode` | `hybrid` (kept) | dense −0.045 [−0.068, −0.022]; keyword −0.124 |
 | `chunking.splitter` | `sentence` (kept) | semantic +0.005, recursive +0.001; both CIs span 0 |
 | `query_transform` | `none` | rewrite −0.041, multi-query −0.032 (really worse); HyDE +0.004 (no effect), +8 s |
-| `metadata_filter` | `none` for now | +0.054 [+0.037, +0.072], free; whether to turn it on is still open (see Consequences) |
+| `metadata_filter` | **`source`** (new) | +0.054 [+0.037, +0.072]; free, and no filter when no source is named |
 | `rerank` | `none` | +0.134 [+0.088, +0.180] on 87 questions, but ≈ 51 s per question locally |
 | `compression` | `none` | fact recall −0.037 (keep 0.5), −0.017 (keep 0.7); answer impact not measured |
 
@@ -34,8 +34,11 @@ answerable dev questions; rerank used an 87-question sample because it is slow.
 
 ## Consequences
 - The source filter's gain partly reflects how MultiHop-RAG questions are written (they name
-  publications). It falls back to no filter when nothing is named, so turning it on is cheap
-  and safe. The decision is left to the next change of defaults.
+  publications). For users who never name one it changes nothing. The cost: a question that
+  mentions a source in passing, or needs an article from a source it doesn't name, is wrongly
+  narrowed (14 of 451 dev questions got worse).
+- The report's reference run is now the configured default (`hybrid-source`), so later
+  experiments are compared against it.
 - Rerank is the largest gain. A small local cross-encoder (or a faster LLM) could make it fit
   interactive latency. That is backlog work.
 - Compression needs the answer eval before it can be judged; retrieval metrics only show what

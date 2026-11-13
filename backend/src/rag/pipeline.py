@@ -111,6 +111,13 @@ def _search_kwargs(c: Container, version: IndexVersion, embedder) -> dict:
                 top_k=top_k, candidates=r.candidates, rrf_k=r.rrf_k, filter_mode=r.metadata_filter)
 
 
+def _retrieval_mode(c: Container) -> str:
+    """The run name for the configured retrieval setup, e.g. "hybrid-source" (none parts left out)."""
+    r = c.settings.retrieval
+    return "-".join(m for m in (r.mode, r.query_transform, r.metadata_filter, r.rerank, r.compression)
+                    if m != "none")
+
+
 def _compress_kwargs(c: Container, embedder) -> dict:
     r = c.settings.retrieval
     return dict(mode=r.compression, embedder=embedder, keep=r.compression_keep)
@@ -166,8 +173,7 @@ def evaluate_retrieval(
     version = c.active_index()
     items = [i for i in dataset.sample(golden_set(c, split), limit) if i.answerable]
     ks = sorted({1, 3, r.top_k, 10})
-    mode = "-".join(m for m in (r.mode, r.query_transform, r.metadata_filter, r.rerank, r.compression)
-                    if m != "none")
+    mode = _retrieval_mode(c)
     run = runs.start(c.db_url, c.settings, "retrieval", mode, split, limit, version.id,
                      extra={"ks": ks, "embedder": version.manifest.dense.model_dump(),
                             "query_prompt": _query_prompt_label(c),
@@ -334,6 +340,6 @@ def label_eval_run(c: Container, run_id: str, label: str | None) -> bool:
 def write_results(c: Container):
     retrieval_runs = runs.labelled(c.db_url, "retrieval")
     results = {r.id: runs.results(c.db_url, r.id) for r in retrieval_runs}
-    reference = (c.settings.retrieval.mode, c.active_index().id)  # plain default mode, active index
+    reference = (_retrieval_mode(c), c.active_index().id)  # the configured default setup, active index
     return report.write_report(RESULTS_DIR, retrieval_runs, runs.labelled(c.db_url, "answers"),
                                results, reference)

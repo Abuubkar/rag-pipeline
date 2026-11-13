@@ -258,7 +258,9 @@ and `report.py::_ci_group`. Per-question scores come from `eval_results` (`runs.
 | **listwise rerank** (87) | **+0.134 [+0.088, +0.180]** | real and large, but 51 s per question |
 | compression keep 0.5 | fact recall −0.037 [−0.048, −0.026] | a real loss of facts; answer impact unknown |
 
-The decisions are recorded in ADR 0011.
+The decisions are recorded in ADR 0011. The source filter is now **on by default**, so
+`docs/results/` compares every run with "3.5 · source filter (hybrid)", not plain hybrid. The
+numbers above are the historical comparison against plain hybrid.
 
 **Exercise:** compare two runs of the *same* config (run `eval retrieval` twice). Every CI
 should contain 0, and the deltas should be exactly 0. Why exactly? (Hint: what in retrieval is random?)

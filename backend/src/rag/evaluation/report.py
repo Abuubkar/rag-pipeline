@@ -95,8 +95,8 @@ def _retrieval_group(runs: list[EvalRun], charts_dir: Path, chart: str, heading:
 
 def _ci_group(runs: list[EvalRun], charts_dir: Path, chart: str, results: dict[str, dict],
               reference: tuple[str, str]) -> str:
-    """Paired 95% CIs of every run vs the reference: the plain default mode on the active index
-    (falls back to the group's first run)."""
+    """Paired 95% CIs of every run vs the reference: the first run of the configured default
+    setup (same mode name, active index); falls back to the group's first run."""
     mode, index = reference
     ref = next((r for r in runs if r.mode == mode and r.index_version_id == index), runs[0])
     others = [r for r in runs if r is not ref]

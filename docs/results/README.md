@@ -42,22 +42,22 @@
 | 3.6 · compression keep 0.5 (hybrid) | 0.70 | 0.47 | 0.66 |
 | 3.6 · compression keep 0.7 (hybrid) | 0.70 | 0.47 | 0.66 |
 
-**Is the change real?** Paired 95% confidence intervals vs **3.1 · hybrid (RRF)** (the current default setup)
+**Is the change real?** Paired 95% confidence intervals vs **3.5 · source filter (hybrid)** (the current default setup)
 
 ![Paired confidence intervals, 451 questions](charts/ci.svg)
 
 | Experiment | recall@6 Δ [95% CI] | fact recall Δ [CI] | MRR Δ [CI] | better / worse (recall@6) |
 |---|--:|--:|--:|--:|
-| M2 · dense (baseline) | **−0.045 [−0.068, −0.022]** | **−0.044 [−0.068, −0.020]** | −0.025 [−0.053, +0.003] | 49 / 88 |
-| 3.1 · keyword only | **−0.124 [−0.152, −0.096]** | **−0.131 [−0.157, −0.105]** | **−0.175 [−0.207, −0.142]** | 40 / 148 |
-| 3.2 · semantic chunks (hybrid) | +0.005 [−0.011, +0.023] | −0.013 [−0.034, +0.009] | **+0.020 [+0.002, +0.040]** | 54 / 41 |
-| 3.2 · recursive chunks (hybrid) | +0.001 [−0.013, +0.014] | −0.009 [−0.026, +0.007] | +0.013 [−0.003, +0.030] | 30 / 29 |
-| 3.3 · query rewrite (hybrid) | **−0.041 [−0.060, −0.022]** | **−0.046 [−0.065, −0.027]** | **−0.044 [−0.071, −0.019]** | 36 / 83 |
-| 3.3 · multi-query ×3 (hybrid) | **−0.032 [−0.053, −0.010]** | **−0.056 [−0.078, −0.034]** | **−0.057 [−0.085, −0.030]** | 50 / 80 |
-| 3.3 · HyDE (hybrid) | +0.004 [−0.011, +0.020] | +0.003 [−0.013, +0.018] | +0.001 [−0.018, +0.020] | 50 / 41 |
-| 3.5 · source filter (hybrid) | **+0.054 [+0.037, +0.072]** | **+0.062 [+0.045, +0.081]** | **+0.070 [+0.050, +0.090]** | 63 / 14 |
-| 3.6 · compression keep 0.5 (hybrid) | +0.000 [+0.000, +0.000] | **−0.037 [−0.048, −0.026]** | +0.000 [+0.000, +0.000] | 0 / 0 |
-| 3.6 · compression keep 0.7 (hybrid) | +0.000 [+0.000, +0.000] | **−0.017 [−0.026, −0.010]** | +0.000 [+0.000, +0.000] | 0 / 0 |
+| M2 · dense (baseline) | **−0.099 [−0.124, −0.075]** | **−0.107 [−0.133, −0.081]** | **−0.095 [−0.125, −0.066]** | 30 / 111 |
+| 3.1 · keyword only | **−0.178 [−0.209, −0.148]** | **−0.193 [−0.222, −0.166]** | **−0.245 [−0.280, −0.209]** | 35 / 178 |
+| 3.1 · hybrid (RRF) | **−0.054 [−0.072, −0.037]** | **−0.062 [−0.081, −0.045]** | **−0.070 [−0.090, −0.050]** | 14 / 63 |
+| 3.2 · semantic chunks (hybrid) | **−0.049 [−0.071, −0.027]** | **−0.075 [−0.100, −0.050]** | **−0.049 [−0.074, −0.025]** | 43 / 78 |
+| 3.2 · recursive chunks (hybrid) | **−0.053 [−0.074, −0.033]** | **−0.072 [−0.092, −0.051]** | **−0.056 [−0.078, −0.035]** | 27 / 72 |
+| 3.3 · query rewrite (hybrid) | **−0.095 [−0.117, −0.072]** | **−0.108 [−0.130, −0.087]** | **−0.114 [−0.144, −0.086]** | 27 / 116 |
+| 3.3 · multi-query ×3 (hybrid) | **−0.086 [−0.111, −0.061]** | **−0.118 [−0.142, −0.094]** | **−0.127 [−0.159, −0.096]** | 40 / 112 |
+| 3.3 · HyDE (hybrid) | **−0.050 [−0.071, −0.029]** | **−0.059 [−0.081, −0.039]** | **−0.069 [−0.093, −0.044]** | 42 / 78 |
+| 3.6 · compression keep 0.5 (hybrid) | **−0.054 [−0.072, −0.037]** | **−0.099 [−0.119, −0.079]** | **−0.070 [−0.090, −0.050]** | 14 / 63 |
+| 3.6 · compression keep 0.7 (hybrid) | **−0.054 [−0.072, −0.037]** | **−0.079 [−0.099, −0.061]** | **−0.070 [−0.090, −0.050]** | 14 / 63 |
 
 Each question's score in the experiment minus its score in the reference, averaged; the CI comes from 5,000 bootstrap resamples of the questions. **Bold** = the interval excludes 0, so the change is unlikely to be luck on these questions. With this many comparisons, expect about 1 in 20 to look real by chance.
 
@@ -81,14 +81,14 @@ Each question's score in the experiment minus its score in the reference, averag
 | 3.4 · hybrid + listwise rerank | 0.75 | 0.58 | 0.76 |
 | 3.5 · source filter (sample) | 0.76 | 0.42 | 0.65 |
 
-**Is the change real?** Paired 95% confidence intervals vs **3.4 · hybrid (sample)** (the current default setup)
+**Is the change real?** Paired 95% confidence intervals vs **3.5 · source filter (sample)** (the current default setup)
 
 ![Paired confidence intervals, 87 questions](charts/ci-87.svg)
 
 | Experiment | recall@6 Δ [95% CI] | fact recall Δ [CI] | MRR Δ [CI] | better / worse (recall@6) |
 |---|--:|--:|--:|--:|
-| 3.4 · hybrid + listwise rerank | **+0.134 [+0.088, +0.180]** | **+0.097 [+0.048, +0.146]** | **+0.114 [+0.048, +0.185]** | 33 / 3 |
-| 3.5 · source filter (sample) | **+0.040 [+0.011, +0.077]** | **+0.055 [+0.021, +0.090]** | **+0.067 [+0.026, +0.114]** | 8 / 1 |
+| 3.4 · hybrid (sample) | **−0.040 [−0.077, −0.011]** | **−0.055 [−0.090, −0.021]** | **−0.067 [−0.114, −0.026]** | 1 / 8 |
+| 3.4 · hybrid + listwise rerank | **+0.094 [+0.039, +0.147]** | +0.042 [−0.014, +0.096] | +0.047 [−0.022, +0.119] | 30 / 6 |
 
 Each question's score in the experiment minus its score in the reference, averaged; the CI comes from 5,000 bootstrap resamples of the questions. **Bold** = the interval excludes 0, so the change is unlikely to be luck on these questions. With this many comparisons, expect about 1 in 20 to look real by chance.
 
