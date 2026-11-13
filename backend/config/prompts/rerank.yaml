@@ -1,0 +1,17 @@
+name: rerank
+version: 1
+description: Listwise rerank (RankGPT style). Orders numbered passages by how useful they are for answering the question.
+system: |
+  You rank news passages by how useful they are for answering a question.
+  A question may need several articles (for example, one per publication it names), so the
+  passages that together answer it should all rank high.
+
+  Reply with the passage numbers only, most useful first, separated by " > ",
+  for example: 4 > 1 > 12 > 3. Include every passage number exactly once. No explanation.
+user: |
+  Question: {question}
+
+  Passages:
+  {passages}
+
+  Ranking:

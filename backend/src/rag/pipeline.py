@@ -29,7 +29,7 @@ from rag.ingestion import chunking, cleaning, indexing, loader
 from rag.ingestion.indexing import ProgressFn
 from rag.observability import tracing
 from rag.packages.orchestration import graph as graphs
-from rag.retrieval import query_transform, search
+from rag.retrieval import query_transform, rerank, search
 
 
 # ══ WORKFLOW 1: INGEST ════════════════════════════════════════════════
@@ -84,6 +84,9 @@ def build_answer_graph(c: Container, version: IndexVersion, callbacks: list, wit
             nodes.append(("retrieval.transform", query_transform.transform_node(**_transform_kwargs(c, chat))))
         embedder = c.query_embedder(version)        # refuses a mismatched embedder
         nodes.append(("retrieval.search", search.search_node(**_search_kwargs(c, version, embedder))))
+        if c.settings.retrieval.rerank != "none":
+            nodes.append(("retrieval.rerank", rerank.rerank_node(top_k=c.settings.retrieval.top_k,
+                                                                 **_rerank_kwargs(c, chat))))
     nodes += [
         ("generation.context",   context.context_node),
         ("generation.generate",  generate.generate_node(chat=chat, prompt=prompt)),
@@ -99,9 +102,16 @@ def _transform_kwargs(c: Container, chat) -> dict:
 
 
 def _search_kwargs(c: Container, version: IndexVersion, embedder) -> dict:
+    """With a reranker, search brings `rerank_candidates` chunks and the reranker keeps top_k."""
     r = c.settings.retrieval
+    top_k = r.top_k if r.rerank == "none" else max(r.rerank_candidates, r.top_k)
     return dict(mode=r.mode, db_url=c.db_url, version_id=version.id, embedder=embedder,
-                top_k=r.top_k, candidates=r.candidates, rrf_k=r.rrf_k)
+                top_k=top_k, candidates=r.candidates, rrf_k=r.rrf_k)
+
+
+def _rerank_kwargs(c: Container, chat) -> dict:
+    r = c.settings.retrieval
+    return dict(chat=chat, prompt=load_prompt("rerank"), passage_chars=r.rerank_passage_chars)
 
 
 def answer(c: Container, question: str) -> tuple[Answer, str | None]:
@@ -149,20 +159,24 @@ def evaluate_retrieval(
     version = c.active_index()
     items = [i for i in dataset.sample(golden_set(c, split), limit) if i.answerable]
     ks = sorted({1, 3, r.top_k, 10})
-    mode = r.mode if r.query_transform == "none" else f"{r.mode}-{r.query_transform}"
+    mode = "-".join(m for m in (r.mode, r.query_transform, r.rerank) if m != "none")
     run = runs.start(c.db_url, c.settings, "retrieval", mode, split, limit, version.id,
                      extra={"ks": ks, "embedder": version.manifest.dense.model_dump(),
-                            "query_prompt": _query_prompt_label(c)}, label=label)
+                            "query_prompt": _query_prompt_label(c),
+                            "rerank_prompt": None if r.rerank == "none" else load_prompt("rerank").label},
+                     label=label)
     with tracing.trace("evaluate-retrieval", input={"split": split, "limit": limit},
                        tags=["eval"], metadata={"index_version": version.id, "eval_run": run.id}):
-        # Two phases, so only one Ollama model is in memory at a time:
-        # 1. the chat model writes every question's search queries (if a transform is on), then unloads;
-        # 2. the embedding model searches.
+        # Phases, so only one Ollama model is in memory at a time:
+        # 1. (query transform only) the chat model writes every question's search queries, unloads;
+        # 2. the embedding model searches for every question;
+        # 3. (rerank only) the embedding model unloads and the chat model reorders the candidates.
         searched = _transform_all(c, items, on_progress)
-        embedder = c.query_embedder(version)
+        retrieved = _search_all(c, version, items, searched, max(ks), on_progress)
+        retrieved = _rerank_all(c, items, retrieved, on_progress)
 
         def search_fn(question: str, k: int):
-            return search.search(searched[question], **{**_search_kwargs(c, version, embedder), "top_k": k})
+            return retrieved[question][:k]
 
         with runs.recorded(c.db_url, run.id) as save:
             scores, report = experiments.run_retrieval_eval(items, search_fn, ks, fact_k=r.top_k,
@@ -191,6 +205,36 @@ def _transform_all(c: Container, items: list[GoldenItem], on_progress=None) -> d
     return searched
 
 
+def _search_all(c: Container, version: IndexVersion, items: list[GoldenItem],
+                searched: dict[str, SearchQueries], at_least: int, on_progress=None) -> dict:
+    """Phase 2: search every question (embedding model only), then unload it."""
+    embedder = c.query_embedder(version)
+    kwargs = _search_kwargs(c, version, embedder)
+    kwargs["top_k"] = max(kwargs["top_k"], at_least)
+    retrieved = {}
+    for n, item in enumerate(items, start=1):
+        retrieved[item.question] = search.search(searched[item.question], **kwargs)
+        if on_progress:
+            on_progress(n, len(items))
+    embedder.unload()
+    return retrieved
+
+
+def _rerank_all(c: Container, items: list[GoldenItem], retrieved: dict, on_progress=None) -> dict:
+    """Phase 3 (rerank only): the chat model reorders every question's candidates, then unloads."""
+    if c.settings.retrieval.rerank == "none":
+        return retrieved
+    chat = c.generator(tracing.langchain_callbacks())
+    kwargs = _rerank_kwargs(c, chat)
+    reranked = {}
+    for n, item in enumerate(items, start=1):
+        reranked[item.question] = rerank.rerank(item.question, retrieved[item.question], **kwargs)
+        if on_progress:
+            on_progress(n, len(items))
+    chat.unload()
+    return reranked
+
+
 def _query_prompt_label(c: Container) -> str | None:
     t = c.settings.retrieval.query_transform
     return None if t == "none" else load_prompt(t).label
@@ -208,23 +252,20 @@ def evaluate_answers(
     prompt = c.settings.prompts.answer if retrieval else c.settings.prompts.closed_book
     run = runs.start(c.db_url, c.settings, "answers", mode, split, limit, version.id,
                      extra={"prompt": load_prompt(prompt).label,
-                            "query_prompt": _query_prompt_label(c) if retrieval else None}, label=label)
+                            "query_prompt": _query_prompt_label(c) if retrieval else None,
+                            "rerank_prompt": load_prompt("rerank").label
+                            if retrieval and c.settings.retrieval.rerank != "none" else None}, label=label)
     with tracing.trace(f"evaluate-answers-{mode}", input={"split": split, "limit": limit},
                        tags=["eval", mode], metadata={"index_version": version.id, "eval_run": run.id}):
         callbacks = tracing.langchain_callbacks()
         if retrieval:
-            # Two phases, so only one Ollama model is in memory at a time:
-            # 1. retrieve for every question (embedding model), then unload it;
-            # 2. answer every question from those chunks (chat model only).
-            searched = _transform_all(c, items, on_progress)  # (0. only with a query transform)
-            embedder = c.query_embedder(version)
-            retrieved = {}
-            for n, item in enumerate(items, start=1):
-                retrieved[item.question] = search.search(
-                    searched[item.question], **_search_kwargs(c, version, embedder))
-                if on_progress:
-                    on_progress(n, len(items))
-            embedder.unload()
+            # Phases, so only one Ollama model is in memory at a time: retrieve for every
+            # question (query transform → search → rerank, as configured), then answer every
+            # question from those chunks with the chat model only.
+            searched = _transform_all(c, items, on_progress)
+            retrieved = _search_all(c, version, items, searched, 0, on_progress)
+            retrieved = _rerank_all(c, items, retrieved, on_progress)
+            retrieved = {q: chunks[:c.settings.retrieval.top_k] for q, chunks in retrieved.items()}
             graph = build_answer_graph(c, version, callbacks, with_search=False)
             answer_fn = lambda q: _run_answer_graph(graph, q, version, callbacks, retrieved[q])  # noqa: E731
         else:

@@ -39,6 +39,9 @@ retrieval:
   rrf_k: 60              # hybrid: Reciprocal Rank Fusion constant
   query_transform: none  # none | rewrite | multi_query | hyde (an LLM call before searching)
   multi_queries: 3       # multi_query: extra queries the LLM writes
+  rerank: none           # none | listwise (an LLM call after searching reorders the candidates)
+  rerank_candidates: 20  # listwise: chunks searched for the LLM to reorder (top_k are kept)
+  rerank_passage_chars: 600  # listwise: each candidate trimmed to this many characters
 
 index:
   alias: default         # which index version `ask` uses (see `main.py index list`)

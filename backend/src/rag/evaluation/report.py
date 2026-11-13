@@ -38,21 +38,35 @@ def _short(qtype: str) -> str:
 
 
 def _retrieval_section(runs: list[EvalRun], charts_dir: Path) -> str:
+    """One table + chart per question count: runs on the full dev split and runs on a smaller
+    sample (slow experiments) are never compared with each other."""
     if not runs:
         return "## Retrieval\n\nNo labelled retrieval runs yet.\n"
+    groups: dict[int, list[EvalRun]] = {}
+    for run in runs:
+        groups.setdefault(run.summary["all"]["questions"], []).append(run)  # type: ignore[index]
+    sections = ["## Retrieval\n"]
+    for i, (n, group) in enumerate(sorted(groups.items(), reverse=True)):
+        chart = "retrieval.svg" if i == 0 else f"retrieval-{n}.svg"
+        heading = "All answerable dev questions" if i == 0 else "Sample (for slow experiments)"
+        sections.append(_retrieval_group(group, charts_dir, chart, f"### {heading}: {n} questions"))
+    return "\n".join(sections)
+
+
+def _retrieval_group(runs: list[EvalRun], charts_dir: Path, chart: str, heading: str) -> str:
     k = runs[0].config["retrieval"]["top_k"]
     metrics = [f"recall@{k}", "fact_recall", "mrr", f"hit@{k}"]
     rows = [r.summary["all"] for r in runs]  # type: ignore[index]
-    (charts_dir / "retrieval.svg").write_text(small_multiples(
+    (charts_dir / chart).write_text(small_multiples(
         "Retrieval: before and after",
         f"Dev split, {rows[0]['questions']} answerable questions · gray = baseline, blue = later experiments",
         [r.label or r.id for r in runs], metrics, [{m: row.get(m) for m in metrics} for row in rows],
     ))
     base = rows[0]
     lines = [
-        "## Retrieval",
+        heading,
         "",
-        "![Retrieval before and after](charts/retrieval.svg)",
+        f"![Retrieval before and after, {rows[0]['questions']} questions](charts/{chart})",
         "",
         f"| Experiment | recall@{k} | Δ | fact recall | Δ | MRR | Δ | hit@{k} | Δ | context tokens | run | commit |",
         "|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|---|---|",

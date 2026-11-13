@@ -6,7 +6,9 @@
 
 ## Retrieval
 
-![Retrieval before and after](charts/retrieval.svg)
+### All answerable dev questions: 451 questions
+
+![Retrieval before and after, 451 questions](charts/retrieval.svg)
 
 | Experiment | recall@6 | Δ | fact recall | Δ | MRR | Δ | hit@6 | Δ | context tokens | run | commit |
 |---|--:|--:|--:|--:|--:|--:|--:|--:|--:|---|---|
