@@ -29,7 +29,7 @@ generation, guardrails, evaluation, observability, streaming UI and agents.
 |---|---|
 | Language | Python 3.12 (uv) · TypeScript |
 | Generation LLM | Ollama (local), default `gemma4:12b` |
-| Judge / stronger tasks | Groq free tier (from Milestone 4) |
+| Judge / stronger tasks | Groq free tier (from Milestone 4), compared with a local Ollama judge |
 | Embeddings | Ollama `nomic-embed-text` (768-dim, needs `search_document:` / `search_query:` prefixes) |
 | Database | **Postgres 17 + pgvector** (Docker): vectors, full-text search, app data, LangGraph checkpoints |
 | Keyword search | Postgres full-text search (`tsvector`); `pg_textsearch` BM25 is a later option |
@@ -168,6 +168,10 @@ disagrees with it, the query is refused.
   - Retrieval: hit@k, recall@k, MRR (article level), evidence-fact recall (chunk text)
   - Answers: normalised exact match / contains-match, null-query refusal accuracy
   - Judge (M4): RAGAS faithfulness, answer correctness
+  - Judge agreement (M4): the same answers scored by the Groq judge (70B-class) and a local Ollama
+    judge (≤ 12B, not the gemma family), with each judge's scores saved per question. The report
+    shows how far they agree (score difference with paired CI, rank correlation, NaN / format-failure rate)
+    and judging time, so we know whether a free local judge can stand in for the hosted one.
 - Baselines: **no retrieval** (does the model already know the answer?), dense-only.
 - Reproducibility: config hash, index version, git commit, prompt versions and dataset version are
   stored per run. Judge results are cached. The judge is a different model family from the generator.
@@ -185,7 +189,7 @@ disagrees with it, the query is refused.
 | **1** | Postgres + pgvector + Alembic; MultiHop-RAG loader; LlamaIndex sentence chunking; Ollama embeddings with prefixes; index versioning; dense search; LangGraph answer graph (search → context → generate → citations); CLI `ingest` / `ask`; Langfuse tracing (optional if keys are missing) | `ingest` reaches `ready`; re-running is a no-op; `ask` returns a cited answer; a mismatched embedder is refused; the trace shows each node |
 | **2** ✅ | Golden set + dev/test split; retrieval + answer metrics; no-retrieval baseline; `eval_runs` | Reproducible `eval` with per-question-type breakdown. Dev baseline: recall@6 0.56, RAG accuracy 0.53 vs 0.42 without retrieval (`docs/concepts/02-…`) |
 | **3** ✅ | Full-text search + RRF hybrid; 3 chunkers (LlamaIndex sentence, LlamaIndex semantic, LangChain recursive); query rewrite / multi-query / HyDE; listwise rerank; metadata filters; compression | Comparison report with paired confidence intervals. Default now hybrid + source filter: recall@6 0.56 → 0.66; RAG accuracy 0.53 → 0.57 (CI spans 0). Rerank +0.13 but ≈ 51 s/question (ADR 0011, `docs/concepts/03-…`) |
-| **4** | Guardrails (input/output/PII); delivery modes; red-team set; RAGAS with Groq judge; prompt sync to Langfuse; LangSmith check | Red-team scores; buffered mode never sends unvalidated text |
+| **4** | Guardrails (input/output/PII); delivery modes; red-team set; RAGAS with Groq judge **and a local Ollama judge for comparison**; prompt sync to Langfuse; LangSmith check | Red-team scores; buffered mode never sends unvalidated text; Groq vs local judge agreement report in `docs/results/` |
 | **5** | FastAPI SSE + React (Vite+, StyleX): chat, citations, pipeline inspector, feedback | Live node timeline; feedback lands on the right trace |
 | **6** | Hand-written tool loop vs LangGraph agent on the same tasks | Comparison report |
 
