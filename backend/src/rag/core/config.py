@@ -68,6 +68,8 @@ class RetrievalConfig(BaseModel):
     rerank: str = "none"    # none | listwise (the LLM reorders the candidates after search)
     rerank_candidates: int = 20  # listwise: chunks search brings for the LLM to reorder
     rerank_passage_chars: int = 600  # listwise: each candidate is trimmed to this for the prompt
+    compression: str = "none"  # none | embedding (drop the sentences least similar to the question)
+    compression_keep: float = 0.5  # embedding: share of the top_k chunks' sentences that is kept
 
 
 class IndexConfig(BaseModel):

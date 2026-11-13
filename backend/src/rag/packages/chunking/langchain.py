@@ -28,3 +28,8 @@ def split_recursive(docs: list[Document], chunk_size: int, chunk_overlap: int) -
         for doc in docs
         for i, text in enumerate(splitter.split_text(doc.body))
     ]
+
+
+def count_tokens(text: str) -> int:
+    """cl100k_base tokens, the unit every chunk's token_count is in."""
+    return len(tiktoken.get_encoding(_ENCODING).encode(text))

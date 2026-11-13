@@ -29,7 +29,7 @@ from rag.ingestion import chunking, cleaning, indexing, loader
 from rag.ingestion.indexing import ProgressFn
 from rag.observability import tracing
 from rag.packages.orchestration import graph as graphs
-from rag.retrieval import query_transform, rerank, search
+from rag.retrieval import compress, query_transform, rerank, search
 
 
 # ══ WORKFLOW 1: INGEST ════════════════════════════════════════════════
@@ -87,6 +87,8 @@ def build_answer_graph(c: Container, version: IndexVersion, callbacks: list, wit
         if c.settings.retrieval.rerank != "none":
             nodes.append(("retrieval.rerank", rerank.rerank_node(top_k=c.settings.retrieval.top_k,
                                                                  **_rerank_kwargs(c, chat))))
+        if c.settings.retrieval.compression != "none":
+            nodes.append(("retrieval.compress", compress.compress_node(**_compress_kwargs(c, embedder))))
     nodes += [
         ("generation.context",   context.context_node),
         ("generation.generate",  generate.generate_node(chat=chat, prompt=prompt)),
@@ -107,6 +109,11 @@ def _search_kwargs(c: Container, version: IndexVersion, embedder) -> dict:
     top_k = r.top_k if r.rerank == "none" else max(r.rerank_candidates, r.top_k)
     return dict(mode=r.mode, db_url=c.db_url, version_id=version.id, embedder=embedder,
                 top_k=top_k, candidates=r.candidates, rrf_k=r.rrf_k, filter_mode=r.metadata_filter)
+
+
+def _compress_kwargs(c: Container, embedder) -> dict:
+    r = c.settings.retrieval
+    return dict(mode=r.compression, embedder=embedder, keep=r.compression_keep)
 
 
 def _rerank_kwargs(c: Container, chat) -> dict:
@@ -159,7 +166,8 @@ def evaluate_retrieval(
     version = c.active_index()
     items = [i for i in dataset.sample(golden_set(c, split), limit) if i.answerable]
     ks = sorted({1, 3, r.top_k, 10})
-    mode = "-".join(m for m in (r.mode, r.query_transform, r.metadata_filter, r.rerank) if m != "none")
+    mode = "-".join(m for m in (r.mode, r.query_transform, r.metadata_filter, r.rerank, r.compression)
+                    if m != "none")
     run = runs.start(c.db_url, c.settings, "retrieval", mode, split, limit, version.id,
                      extra={"ks": ks, "embedder": version.manifest.dense.model_dump(),
                             "query_prompt": _query_prompt_label(c),
@@ -170,10 +178,12 @@ def evaluate_retrieval(
         # Phases, so only one Ollama model is in memory at a time:
         # 1. (query transform only) the chat model writes every question's search queries, unloads;
         # 2. the embedding model searches for every question;
-        # 3. (rerank only) the embedding model unloads and the chat model reorders the candidates.
+        # 3. (rerank only) the embedding model unloads and the chat model reorders the candidates;
+        # 4. (compression only) the embedding model trims the top_k chunks' sentences.
         searched = _transform_all(c, items, on_progress)
         retrieved = _search_all(c, version, items, searched, max(ks), on_progress)
         retrieved = _rerank_all(c, items, retrieved, on_progress)
+        retrieved = _compress_all(c, version, items, retrieved, on_progress)
 
         def search_fn(question: str, k: int):
             return retrieved[question][:k]
@@ -235,6 +245,25 @@ def _rerank_all(c: Container, items: list[GoldenItem], retrieved: dict, on_progr
     return reranked
 
 
+def _compress_all(c: Container, version: IndexVersion, items: list[GoldenItem], retrieved: dict,
+                  on_progress=None) -> dict:
+    """Phase 4 (compression only): the embedding model trims every question's top_k chunks, then
+    unloads. Chunks below top_k stay as they are; only recall@10 looks at them, by article."""
+    if c.settings.retrieval.compression == "none":
+        return retrieved
+    top_k = c.settings.retrieval.top_k
+    embedder = c.query_embedder(version)
+    kwargs = _compress_kwargs(c, embedder)
+    compressed = {}
+    for n, item in enumerate(items, start=1):
+        chunks = retrieved[item.question]
+        compressed[item.question] = compress.compress(item.question, chunks[:top_k], **kwargs) + chunks[top_k:]
+        if on_progress:
+            on_progress(n, len(items))
+    embedder.unload()
+    return compressed
+
+
 def _query_prompt_label(c: Container) -> str | None:
     t = c.settings.retrieval.query_transform
     return None if t == "none" else load_prompt(t).label
@@ -266,6 +295,7 @@ def evaluate_answers(
             retrieved = _search_all(c, version, items, searched, 0, on_progress)
             retrieved = _rerank_all(c, items, retrieved, on_progress)
             retrieved = {q: chunks[:c.settings.retrieval.top_k] for q, chunks in retrieved.items()}
+            retrieved = _compress_all(c, version, items, retrieved, on_progress)
             graph = build_answer_graph(c, version, callbacks, with_search=False)
             answer_fn = lambda q: _run_answer_graph(graph, q, version, callbacks, retrieved[q])  # noqa: E731
         else:

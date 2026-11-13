@@ -43,6 +43,8 @@ retrieval:
   rerank: none           # none | listwise (an LLM call after searching reorders the candidates)
   rerank_candidates: 20  # listwise: chunks searched for the LLM to reorder (top_k are kept)
   rerank_passage_chars: 600  # listwise: each candidate trimmed to this many characters
+  compression: none      # none | embedding (after search/rerank: keep the sentences closest to the question)
+  compression_keep: 0.5  # embedding: share of sentences kept across the top_k chunks
 
 index:
   alias: default         # which index version `ask` uses (see `main.py index list`)
