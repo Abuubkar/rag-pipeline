@@ -184,7 +184,7 @@ disagrees with it, the query is refused.
 |---|---|---|
 | **1** | Postgres + pgvector + Alembic; MultiHop-RAG loader; LlamaIndex sentence chunking; Ollama embeddings with prefixes; index versioning; dense search; LangGraph answer graph (search → context → generate → citations); CLI `ingest` / `ask`; Langfuse tracing (optional if keys are missing) | `ingest` reaches `ready`; re-running is a no-op; `ask` returns a cited answer; a mismatched embedder is refused; the trace shows each node |
 | **2** ✅ | Golden set + dev/test split; retrieval + answer metrics; no-retrieval baseline; `eval_runs` | Reproducible `eval` with per-question-type breakdown. Dev baseline: recall@6 0.56, RAG accuracy 0.53 vs 0.42 without retrieval (`docs/concepts/02-…`) |
-| **3** | Full-text search + RRF hybrid; 3 chunkers (LlamaIndex sentence, LlamaIndex semantic, LangChain recursive); query rewrite / multi-query / HyDE; listwise rerank; metadata filters; compression | Comparison report with paired confidence intervals |
+| **3** ✅ | Full-text search + RRF hybrid; 3 chunkers (LlamaIndex sentence, LlamaIndex semantic, LangChain recursive); query rewrite / multi-query / HyDE; listwise rerank; metadata filters; compression | Comparison report with paired confidence intervals. Default now hybrid + source filter: recall@6 0.56 → 0.66; RAG accuracy 0.53 → 0.57 (CI spans 0). Rerank +0.13 but ≈ 51 s/question (ADR 0011, `docs/concepts/03-…`) |
 | **4** | Guardrails (input/output/PII); delivery modes; red-team set; RAGAS with Groq judge; prompt sync to Langfuse; LangSmith check | Red-team scores; buffered mode never sends unvalidated text |
 | **5** | FastAPI SSE + React (Vite+, StyleX): chat, citations, pipeline inspector, feedback | Live node timeline; feedback lands on the right trace |
 | **6** | Hand-written tool loop vs LangGraph agent on the same tasks | Comparison report |
@@ -202,6 +202,11 @@ disagrees with it, the query is refused.
 
 Add ideas here first, then promote them to a milestone.
 
+- [ ] **False refusals** (after M4, so M4's effect is measured on its own): gemma answers "Insufficient information" on ≈ 40% of answerable comparison/temporal questions even when the evidence is retrieved. Fix in the answer prompt; judge with the paired answer eval
+- [ ] Cross-encoder rerank (e.g. bge-reranker): listwise LLM rerank gave +0.13 recall@6 but costs ≈ 51 s/question
+- [ ] Date metadata filter (`published_at` ± 1 day; 97 dev questions name a date)
+- [ ] LLM self-query filter (the LLM writes a structured filter) vs the rule-based source match
+- [ ] Answer eval: unload the generator at the end (it stays loaded until Ollama's idle timeout)
 - [ ] `pg_textsearch` real BM25 vs Postgres full-text search
 - [ ] Qdrant as a second vector store (dedicated vector DB comparison)
 - [ ] Convex α-fusion vs RRF
