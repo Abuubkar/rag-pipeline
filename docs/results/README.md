@@ -100,5 +100,6 @@ Each question's score in the experiment minus its score in the reference, averag
 |---|--:|--:|--:|--:|--:|--:|---|---|---|
 | M2 · no retrieval (baseline) | 100 | 0.42 | — | 0.39 | 0.65 | 0.00 | gemma4:12b · closed_book@1 | `answers-closed_book-20261108-234114` | `085a59e` |
 | M2 · RAG, dense search | 100 | 0.53 | +0.11 | 0.17 | 0.46 | 0.54 | gemma4:12b · answer@1 | `answers-rag-20261108-234555` | `085a59e` |
+| M3 · RAG, hybrid search | 100 | 0.57 | +0.15 | 0.17 | 0.44 | 0.54 | gemma4:12b · answer@1 | `answers-rag-20261113-105126` | `417553d` |
 
 `*` after a commit = the run started with uncommitted changes.

@@ -262,3 +262,20 @@ The decisions are recorded in ADR 0011.
 
 **Exercise:** compare two runs of the *same* config (run `eval retrieval` twice). Every CI
 should contain 0, and the deltas should be exactly 0. Why exactly? (Hint: what in retrieval is random?)
+
+## Answer check: does better retrieval give better answers?
+The same 100-question answer eval as Milestone 2, now with hybrid search (the new default):
+
+| Question type | accuracy, dense (M2) | accuracy, hybrid | refusal rate, dense → hybrid |
+|---|--:|--:|--:|
+| comparison | 0.50 | 0.39 | 0.32 → 0.39 |
+| inference | 0.57 | **0.74** | 0.40 → 0.26 |
+| temporal | 0.25 | 0.29 | 0.42 → 0.46 |
+| null (should refuse) | 1.00 | 1.00 | 1.00 → 1.00 |
+| **all** | **0.53** | **0.57** | 0.46 → 0.44 |
+
+Paired: +0.04, 95% CI [−0.04, +0.12], with 11 questions better and 7 worse. That is **not significant on 100
+questions**. Better retrieval clearly helps inference questions. Comparison and temporal questions
+are limited by the *generator*: gemma still says "Insufficient information" on about 40% of the
+answerable ones, even when the evidence was retrieved. That is the target for the next
+milestone (prompting and generation), not for more retrieval tuning.

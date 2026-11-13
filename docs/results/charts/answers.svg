@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 955 168" width="955" height="168" font-family='system-ui, -apple-system, "Segoe UI", sans-serif' role="img" aria-label="Answer accuracy: before and after">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 955 198" width="955" height="198" font-family='system-ui, -apple-system, "Segoe UI", sans-serif' role="img" aria-label="Answer accuracy: before and after">
 <style>
   .surface { fill: #fcfcfb; }
   .title { fill: #0b0b0b; font-weight: 600; font-size: 14px; }
@@ -27,69 +27,80 @@
     .ci-noise { stroke: #898781; fill: #1a1a19; }
   }
 </style>
-<rect class="surface" width="955" height="168" rx="8"/>
+<rect class="surface" width="955" height="198" rx="8"/>
 <text class="title" x="16" y="26">Answer accuracy: before and after</text>
 <text class="subtitle" x="16" y="44">Dev split, 100-question sample · gray = baseline, blue = later experiments</text>
 <text class="label" x="16" y="93.0">M2 · no retrieval (baseline)</text>
 <text class="label" x="16" y="123.0">M2 · RAG, dense search</text>
+<text class="label" x="16" y="153.0">M3 · RAG, hybrid search</text>
 <text class="panel-title" x="226" y="62">all types</text>
-<line class="axis" x1="226.0" y1="70" x2="226.0" y2="134"/>
-<text class="tick" x="226.0" y="150" text-anchor="middle">0</text>
-<line class="grid" x1="271.5" y1="70" x2="271.5" y2="134"/>
-<text class="tick" x="271.5" y="150" text-anchor="middle">0.5</text>
-<line class="grid" x1="317.0" y1="70" x2="317.0" y2="134"/>
-<text class="tick" x="317.0" y="150" text-anchor="middle">1</text>
-<line class="ref" x1="264.2" y1="70" x2="264.2" y2="134"/>
+<line class="axis" x1="226.0" y1="70" x2="226.0" y2="164"/>
+<text class="tick" x="226.0" y="180" text-anchor="middle">0</text>
+<line class="grid" x1="271.5" y1="70" x2="271.5" y2="164"/>
+<text class="tick" x="271.5" y="180" text-anchor="middle">0.5</text>
+<line class="grid" x1="317.0" y1="70" x2="317.0" y2="164"/>
+<text class="tick" x="317.0" y="180" text-anchor="middle">1</text>
+<line class="ref" x1="264.2" y1="70" x2="264.2" y2="164"/>
 <path class="bar-baseline" d="M226.0,80.0 H260.2 Q264.2,80.0 264.2,84.0 V94.0 Q264.2,98.0 260.2,98.0 H226.0 Z"><title>M2 · no retrieval (baseline) · all types 0.42</title></path>
 <text class="value" x="269.2" y="93.0">0.42</text>
 <path class="bar-run" d="M226.0,110.0 H270.2 Q274.2,110.0 274.2,114.0 V124.0 Q274.2,128.0 270.2,128.0 H226.0 Z"><title>M2 · RAG, dense search · all types 0.53 (+0.11 vs baseline)</title></path>
 <text class="value" x="279.2" y="123.0">0.53</text>
+<path class="bar-run" d="M226.0,140.0 H273.9 Q277.9,140.0 277.9,144.0 V154.0 Q277.9,158.0 273.9,158.0 H226.0 Z"><title>M3 · RAG, hybrid search · all types 0.57 (+0.15 vs baseline)</title></path>
+<text class="value" x="282.9" y="153.0">0.57</text>
 <text class="panel-title" x="373" y="62">comparison</text>
-<line class="axis" x1="373.0" y1="70" x2="373.0" y2="134"/>
-<text class="tick" x="373.0" y="150" text-anchor="middle">0</text>
-<line class="grid" x1="418.5" y1="70" x2="418.5" y2="134"/>
-<text class="tick" x="418.5" y="150" text-anchor="middle">0.5</text>
-<line class="grid" x1="464.0" y1="70" x2="464.0" y2="134"/>
-<text class="tick" x="464.0" y="150" text-anchor="middle">1</text>
-<line class="ref" x1="376.2" y1="70" x2="376.2" y2="134"/>
+<line class="axis" x1="373.0" y1="70" x2="373.0" y2="164"/>
+<text class="tick" x="373.0" y="180" text-anchor="middle">0</text>
+<line class="grid" x1="418.5" y1="70" x2="418.5" y2="164"/>
+<text class="tick" x="418.5" y="180" text-anchor="middle">0.5</text>
+<line class="grid" x1="464.0" y1="70" x2="464.0" y2="164"/>
+<text class="tick" x="464.0" y="180" text-anchor="middle">1</text>
+<line class="ref" x1="376.2" y1="70" x2="376.2" y2="164"/>
 <path class="bar-baseline" d="M373.0,80.0 H373.0 Q376.2,80.0 376.2,83.2 V94.8 Q376.2,98.0 373.0,98.0 H373.0 Z"><title>M2 · no retrieval (baseline) · comparison 0.04</title></path>
 <text class="value" x="381.2" y="93.0">0.04</text>
 <path class="bar-run" d="M373.0,110.0 H414.5 Q418.5,110.0 418.5,114.0 V124.0 Q418.5,128.0 414.5,128.0 H373.0 Z"><title>M2 · RAG, dense search · comparison 0.50 (+0.46 vs baseline)</title></path>
 <text class="value" x="423.5" y="123.0">0.50</text>
+<path class="bar-run" d="M373.0,140.0 H404.8 Q408.8,140.0 408.8,144.0 V154.0 Q408.8,158.0 404.8,158.0 H373.0 Z"><title>M3 · RAG, hybrid search · comparison 0.39 (+0.36 vs baseline)</title></path>
+<text class="value" x="413.8" y="153.0">0.39</text>
 <text class="panel-title" x="520" y="62">inference</text>
-<line class="axis" x1="520.0" y1="70" x2="520.0" y2="134"/>
-<text class="tick" x="520.0" y="150" text-anchor="middle">0</text>
-<line class="grid" x1="565.5" y1="70" x2="565.5" y2="134"/>
-<text class="tick" x="565.5" y="150" text-anchor="middle">0.5</text>
-<line class="grid" x1="611.0" y1="70" x2="611.0" y2="134"/>
-<text class="tick" x="611.0" y="150" text-anchor="middle">1</text>
-<line class="ref" x1="585.0" y1="70" x2="585.0" y2="134"/>
+<line class="axis" x1="520.0" y1="70" x2="520.0" y2="164"/>
+<text class="tick" x="520.0" y="180" text-anchor="middle">0</text>
+<line class="grid" x1="565.5" y1="70" x2="565.5" y2="164"/>
+<text class="tick" x="565.5" y="180" text-anchor="middle">0.5</text>
+<line class="grid" x1="611.0" y1="70" x2="611.0" y2="164"/>
+<text class="tick" x="611.0" y="180" text-anchor="middle">1</text>
+<line class="ref" x1="585.0" y1="70" x2="585.0" y2="164"/>
 <path class="bar-baseline" d="M520.0,80.0 H581.0 Q585.0,80.0 585.0,84.0 V94.0 Q585.0,98.0 581.0,98.0 H520.0 Z"><title>M2 · no retrieval (baseline) · inference 0.71</title></path>
 <text class="value" x="590.0" y="93.0">0.71</text>
 <path class="bar-run" d="M520.0,110.0 H568.0 Q572.0,110.0 572.0,114.0 V124.0 Q572.0,128.0 568.0,128.0 H520.0 Z"><title>M2 · RAG, dense search · inference 0.57 (-0.14 vs baseline)</title></path>
 <text class="value" x="577.0" y="123.0">0.57</text>
+<path class="bar-run" d="M520.0,140.0 H583.6 Q587.6,140.0 587.6,144.0 V154.0 Q587.6,158.0 583.6,158.0 H520.0 Z"><title>M3 · RAG, hybrid search · inference 0.74 (+0.03 vs baseline)</title></path>
+<text class="value" x="592.6" y="153.0">0.74</text>
 <text class="panel-title" x="667" y="62">temporal</text>
-<line class="axis" x1="667.0" y1="70" x2="667.0" y2="134"/>
-<text class="tick" x="667.0" y="150" text-anchor="middle">0</text>
-<line class="grid" x1="712.5" y1="70" x2="712.5" y2="134"/>
-<text class="tick" x="712.5" y="150" text-anchor="middle">0.5</text>
-<line class="grid" x1="758.0" y1="70" x2="758.0" y2="134"/>
-<text class="tick" x="758.0" y="150" text-anchor="middle">1</text>
-<line class="ref" x1="678.4" y1="70" x2="678.4" y2="134"/>
+<line class="axis" x1="667.0" y1="70" x2="667.0" y2="164"/>
+<text class="tick" x="667.0" y="180" text-anchor="middle">0</text>
+<line class="grid" x1="712.5" y1="70" x2="712.5" y2="164"/>
+<text class="tick" x="712.5" y="180" text-anchor="middle">0.5</text>
+<line class="grid" x1="758.0" y1="70" x2="758.0" y2="164"/>
+<text class="tick" x="758.0" y="180" text-anchor="middle">1</text>
+<line class="ref" x1="678.4" y1="70" x2="678.4" y2="164"/>
 <path class="bar-baseline" d="M667.0,80.0 H674.4 Q678.4,80.0 678.4,84.0 V94.0 Q678.4,98.0 674.4,98.0 H667.0 Z"><title>M2 · no retrieval (baseline) · temporal 0.12</title></path>
 <text class="value" x="683.4" y="93.0">0.12</text>
 <path class="bar-run" d="M667.0,110.0 H685.8 Q689.8,110.0 689.8,114.0 V124.0 Q689.8,128.0 685.8,128.0 H667.0 Z"><title>M2 · RAG, dense search · temporal 0.25 (+0.12 vs baseline)</title></path>
 <text class="value" x="694.8" y="123.0">0.25</text>
+<path class="bar-run" d="M667.0,140.0 H689.5 Q693.5,140.0 693.5,144.0 V154.0 Q693.5,158.0 689.5,158.0 H667.0 Z"><title>M3 · RAG, hybrid search · temporal 0.29 (+0.17 vs baseline)</title></path>
+<text class="value" x="698.5" y="153.0">0.29</text>
 <text class="panel-title" x="814" y="62">null</text>
-<line class="axis" x1="814.0" y1="70" x2="814.0" y2="134"/>
-<text class="tick" x="814.0" y="150" text-anchor="middle">0</text>
-<line class="grid" x1="859.5" y1="70" x2="859.5" y2="134"/>
-<text class="tick" x="859.5" y="150" text-anchor="middle">0.5</text>
-<line class="grid" x1="905.0" y1="70" x2="905.0" y2="134"/>
-<text class="tick" x="905.0" y="150" text-anchor="middle">1</text>
-<line class="ref" x1="905.0" y1="70" x2="905.0" y2="134"/>
+<line class="axis" x1="814.0" y1="70" x2="814.0" y2="164"/>
+<text class="tick" x="814.0" y="180" text-anchor="middle">0</text>
+<line class="grid" x1="859.5" y1="70" x2="859.5" y2="164"/>
+<text class="tick" x="859.5" y="180" text-anchor="middle">0.5</text>
+<line class="grid" x1="905.0" y1="70" x2="905.0" y2="164"/>
+<text class="tick" x="905.0" y="180" text-anchor="middle">1</text>
+<line class="ref" x1="905.0" y1="70" x2="905.0" y2="164"/>
 <path class="bar-baseline" d="M814.0,80.0 H901.0 Q905.0,80.0 905.0,84.0 V94.0 Q905.0,98.0 901.0,98.0 H814.0 Z"><title>M2 · no retrieval (baseline) · null 1.00</title></path>
 <text class="value" x="910.0" y="93.0">1.00</text>
 <path class="bar-run" d="M814.0,110.0 H901.0 Q905.0,110.0 905.0,114.0 V124.0 Q905.0,128.0 901.0,128.0 H814.0 Z"><title>M2 · RAG, dense search · null 1.00 (+0.00 vs baseline)</title></path>
 <text class="value" x="910.0" y="123.0">1.00</text>
+<path class="bar-run" d="M814.0,140.0 H901.0 Q905.0,140.0 905.0,144.0 V154.0 Q905.0,158.0 901.0,158.0 H814.0 Z"><title>M3 · RAG, hybrid search · null 1.00 (+0.00 vs baseline)</title></path>
+<text class="value" x="910.0" y="153.0">1.00</text>
 </svg>
